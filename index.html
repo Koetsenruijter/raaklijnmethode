@@ -107,7 +107,7 @@ li.ok b.ic{color:var(--goodi)}li.bad b.ic{color:var(--badi)}li.tip b.ic{color:va
 <div class="opts">
   <label class="chk"><input type="checkbox" id="o_self"> Zelf aflezen en berekenen</label>
   <label class="chk" id="o_exam_wrap"><input type="checkbox" id="o_exam"> Kleuren pas tonen na het vastzetten</label>
-  <label class="chk"><input type="checkbox" id="o_hard"> Extra uitdaging</label>
+  <label class="chk" id="o_hard_wrap"><input type="checkbox" id="o_hard"> Extra uitdaging</label>
 </div>
 
 <section class="task" aria-live="polite">
@@ -826,12 +826,12 @@ $('min').onclick=()=>isR()?rotate(-0.5):move(-1);$('plus').onclick=()=>isR()?rot
 $('opnieuw').onclick=reset;$('volgende').onclick=newTask;$('nieuw').onclick=newTask;
 $('exact').onchange=e=>{S.exact=e.target.checked;draw()};
 const save=()=>{try{localStorage.setItem('raaklijn-soort3',soort.value);localStorage.setItem('raaklijn-opt',JSON.stringify(S.opt))}catch(_){}};
-const syncOpts=()=>{$('o_exam_wrap').hidden=soort.value==='raak'};
+const syncOpts=()=>{$('o_exam_wrap').hidden=soort.value==='raak';$('o_hard_wrap').hidden=!S.opt.self;if(!S.opt.self&&S.opt.hard){S.opt.hard=false;$('o_hard').checked=false;save()}};
 soort.onchange=()=>{save();syncOpts();newTask()};
-for(const [id,k] of [['o_self','self'],['o_exam','exam'],['o_hard','hard']])$(id).onchange=e=>{S.opt[k]=e.target.checked;save();if(k==='exam'){ui();draw()}else newTask()};
+for(const [id,k] of [['o_self','self'],['o_exam','exam'],['o_hard','hard']])$(id).onchange=e=>{S.opt[k]=e.target.checked;save();syncOpts();if(k==='exam'){ui();draw()}else newTask()};
 try{const v=localStorage.getItem('raaklijn-soort3');if(v&&[...soort.options].some(o=>o.value===v))soort.value=v;
  const o=JSON.parse(localStorage.getItem('raaklijn-opt')||'{}');for(const k of ['self','exam','hard'])S.opt[k]=!!o[k]}catch(_){}
-syncOpts();$('o_self').checked=S.opt.self;$('o_exam').checked=S.opt.exam;$('o_hard').checked=S.opt.hard;
+$('o_self').checked=S.opt.self;$('o_exam').checked=S.opt.exam;$('o_hard').checked=S.opt.hard;syncOpts();
 const ro=new ResizeObserver(()=>{if(S.task){layout();draw()}});ro.observe(fig);
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>draw());
 newTask();
