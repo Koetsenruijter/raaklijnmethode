@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raaklijnmethode oefenen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: rustig en precies, als een practicumblad
+   IDEA: een vel millimeterpapier waarop je met een geodriehoek een raaklijn tekent
+   PICTURE: het grote canvas: grafiek, doelpunt, liniaal, afleesdriehoek met accolades
+   COLOUR and TYPE: wit papier, blauwe roosterinkt, rode pen voor de raaklijn; Atkinson Hyperlegible + STIX Two voor formules
+   LAYOUT: opdracht boven het vel, bediening eronder, uitwerking en beoordeling in twee kolommen */
+:root{color-scheme:light dark;
+--bg:light-dark(#eef0f2,#121519);--panel:light-dark(#ffffff,#1c2127);--ink:light-dark(#18212d,#e6e9ed);--muted:light-dark(#566170,#9ba6b3);--line:light-dark(#d5dae0,#313942);
+--blue:light-dark(#1f4e9c,#86b4ff);--red:light-dark(#c62d2d,#ff7b72);--btn:light-dark(#edf0f4,#262d35);
+--good:light-dark(#e3f4ec,#173226);--goodi:light-dark(#0e6b4a,#7fe0b2);--ok:light-dark(#fdf1dc,#33290f);--oki:light-dark(#8a5600,#f3c46b);--bad:light-dark(#fbe5e3,#3a1a18);--badi:light-dark(#a8261f,#ff9c94)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Atkinson Hyperlegible",system-ui,sans-serif;overflow-x:clip}
+.wrap{max-width:1120px;margin:0 auto;padding:clamp(16px,3vw,34px) max(4vw,12px) 48px}
+header{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between;margin-bottom:16px}
+h1{font-size:clamp(28px,4vw,40px);line-height:1.05;margin:0;text-wrap:balance}
+header p{margin:6px 0 0;color:var(--muted);max-width:60ch}
+.ctrl,.tools,.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+label.sel{display:flex;flex-direction:column;font-size:13px;color:var(--muted)}
+select,button{font:inherit;font-size:16px;min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--btn);color:var(--ink);padding:0 14px;cursor:pointer}
+select{color:var(--ink)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.primary{background:var(--blue);color:light-dark(#fff,#0c1522);border-color:transparent;font-weight:700}
+.pen{background:var(--red);color:light-dark(#fff,#1d0a09);border-color:transparent;font-weight:700}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.task{background:var(--panel);border:1px solid var(--line);border-bottom:0;border-radius:14px 14px 0 0;padding:14px 18px}
+#opdracht{font-size:clamp(18px,2.3vw,22px);margin:0;line-height:1.35}
+#context{color:var(--muted);font-size:14px;margin-top:2px}
+.m,i.v{font-family:"STIX Two Text","Cambria Math",Georgia,serif}
+i.v{font-size:1.1em}
+.fig{position:relative;width:100%;height:clamp(330px,62vw,640px);overflow:hidden;background:#fff;border-inline:1px solid var(--line)}
+.fig canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:pan-y}
+.bar{background:var(--panel);border:1px solid var(--line);border-top:0;border-radius:0 0 14px 14px;padding:12px 14px;display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center}
+.steps{display:flex;gap:6px;flex-wrap:wrap;width:100%}
+.steps span{font-size:13px;padding:3px 10px;border-radius:99px;background:var(--btn);color:var(--muted)}
+.steps span.on{background:var(--blue);color:light-dark(#fff,#0c1522)}
+#status{flex:1 1 280px;font-size:15px;margin:0}
+#status.warn{color:var(--red)}
+#hoek{font-variant-numeric:tabular-nums;min-width:70px;text-align:center;white-space:nowrap;font-size:15px;color:var(--muted)}
+#result{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;margin-top:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.card h2{font-size:18px;margin:0 0 8px}
+.small{font-size:14px;color:var(--muted);margin:4px 0 8px}
+.eq{font-family:"STIX Two Text","Cambria Math",Georgia,serif;font-size:19px;margin:6px 0;display:flex;align-items:center;flex-wrap:wrap;gap:4px 7px}
+.eq.big{font-size:23px;margin-top:12px}
+.eq b{font-weight:600;white-space:nowrap}
+.frac{display:inline-flex;flex-direction:column;align-items:center;line-height:1.2;white-space:nowrap}
+.frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 5px 1px}
+.frac>span:last-child{padding:1px 5px 0}
+table{border-collapse:collapse;width:100%;margin:4px 0 10px}
+td{padding:6px 0;border-bottom:1px solid var(--line)}
+td+td{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:700}
+.verdict{border-radius:10px;padding:10px 12px;font-weight:700;margin:8px 0 0}
+.verdict.good{background:var(--good);color:var(--goodi)}.verdict.ok{background:var(--ok);color:var(--oki)}.verdict.bad{background:var(--bad);color:var(--badi)}
+.actions{grid-column:1/-1}
+.chk{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 6px;cursor:pointer}
+.chk input{width:20px;height:20px;accent-color:#11805a}
+#tally{color:var(--muted);font-size:14px;margin:16px 2px 0}
+details{margin-top:12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:4px 18px}
+summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:700}
+details ol{margin:0 0 14px;padding-left:22px}
+[hidden]{display:none!important}
+@media(max-width:720px){#result{grid-template-columns:minmax(0,1fr)}.eq{font-size:18px}.eq.big{font-size:21px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1>Raaklijnmethode oefenen</h1>
+    <p>Teken een raaklijn met de liniaal, lees twee punten af en bereken de helling. Daarna zie je hoe dicht je bij de exacte waarde zit.</p>
+  </div>
+  <div class="ctrl">
+    <label class="sel">Diagram
+      <select id="soort">
+        <option value="mix">Willekeurig</option>
+        <option value="xt">(x,t)-diagram → snelheid</option>
+        <option value="vt">(v,t)-diagram → versnelling</option>
+      </select>
+    </label>
+    <button id="nieuw" class="primary" style="align-self:flex-end">Nieuwe opdracht</button>
+  </div>
+</header>
+
+<section class="task" aria-live="polite">
+  <p id="opdracht"></p>
+  <div id="context"></div>
+</section>
+<div class="fig" id="fig"><canvas id="cv" aria-label="Grafiek op millimeterpapier"></canvas></div>
+<div class="bar">
+  <div class="steps"><span id="s1">1 · Punt aanklikken</span><span id="s2">2 · Liniaal richten</span><span id="s3">3 · Raaklijn en uitwerking</span></div>
+  <p id="status"></p>
+  <div class="tools">
+    <button id="plaats">Plaats liniaal</button>
+    <button id="min" title="Met de klok mee draaien">↻ −0,5°</button>
+    <button id="plus" title="Tegen de klok in draaien">↺ +0,5°</button>
+    <span id="hoek">–</span>
+    <button id="teken" class="pen">Teken raaklijn</button>
+  </div>
+</div>
+
+<section id="result" hidden>
+  <div class="card" id="uitwerking"></div>
+  <div class="card" id="oordeel"></div>
+  <div class="actions">
+    <button id="opnieuw">Opnieuw proberen (zelfde grafiek)</button>
+    <button id="volgende" class="primary">Volgende opdracht</button>
+    <label class="chk"><input type="checkbox" id="exact"> Toon de exacte raaklijn</label>
+  </div>
+</section>
+
+<p id="tally"></p>
+
+<details>
+  <summary>Zo werkt de raaklijnmethode</summary>
+  <ol>
+    <li>Leg de liniaal precies op het punt en draai hem tot de lijn de grafiek daar alleen raakt: aan beide kanten van het punt evenveel ruimte tussen lijn en grafiek.</li>
+    <li>Teken de raaklijn zo lang mogelijk.</li>
+    <li>Kies twee punten óp de raaklijn die ver uit elkaar liggen en goed af te lezen zijn (op roosterlijnen).</li>
+    <li>Bereken de helling: <span class="m"><i>v</i> = Δ<i>x</i>/Δ<i>t</i></span> in een (<i>x</i>,<i>t</i>)-diagram of <span class="m"><i>a</i> = Δ<i>v</i>/Δ<i>t</i></span> in een (<i>v</i>,<i>t</i>)-diagram.</li>
+  </ol>
+  <p class="small">Bediening: sleep over de grafiek om de liniaal te draaien, of gebruik het scrollwiel, de knoppen of de pijltjestoetsen (met Shift: 0,1°). Klik of druk op Enter om de raaklijn vast te zetten.</p>
+</details>
+</div>
+
+<script>
+{
+const $=id=>document.getElementById(id);
+const cv=$('cv'),ctx=cv.getContext('2d'),fig=$('fig'),soort=$('soort');
+const RM=matchMedia('(prefers-reduced-motion: reduce)');
+const rnd=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.floor(Math.random()*a.length)];
+const E=Math.exp,TAU=2*Math.PI,DEG=180/Math.PI;
+const UI='"Atkinson Hyperlegible",system-ui,sans-serif',MF='"STIX Two Text",Georgia,serif';
+
+/* ---------- bewegingen ---------- */
+const GEN={
+ xt:[
+  ()=>{const a=pick([0.4,0.5,0.6,0.8,1,1.2,1.5,2]),x0=pick([0,0,2,5,10]),v0=pick([0,0,1,2]),T=pick([8,10,12]);
+       return{name:'Eenparig versnelde beweging',T,f:t=>x0+v0*t+a*t*t/2,df:t=>v0+a*t}},
+  ()=>{const T=pick([8,10,12]),a=pick([0.5,0.8,1,1.2,1.5,2]),ts=T*rnd(1.05,1.4),v0=a*ts,x0=pick([0,0,5,10]);
+       return{name:'Eenparig vertraagde beweging',T,f:t=>x0+v0*t-a*t*t/2,df:t=>v0-a*t}},
+  ()=>{const P=pick([4,5,6,8]),T=Math.round(P*rnd(1.2,1.6)),A=pick([2,3,4,5,6,8]),C=pick([0,A+pick([1,2,4])]),ph=rnd(0,TAU),w=TAU/P;
+       return{name:'Harmonische trilling',T,f:t=>C+A*Math.sin(w*t+ph),df:t=>A*w*Math.cos(w*t+ph)}},
+  ()=>{const T=pick([8,10,12]),tau=T/rnd(2,3.2),L=pick([20,30,40,50,60,80]);
+       return{name:'Afremmende beweging door wrijving',T,f:t=>L*(1-E(-t/tau)),df:t=>L/tau*E(-t/tau)}},
+  ()=>{const T=pick([8,10,12]),tau=T/rnd(2.5,4),ve=pick([5,8,10,15,20]);
+       return{name:'Optrekken tot een constante eindsnelheid',T,f:t=>ve*(t-tau*(1-E(-t/tau))),df:t=>ve*(1-E(-t/tau))}}
+ ],
+ vt:[
+  ()=>{const T=pick([8,10,12,16,20]),ve=pick([20,30,40,50,60]),tau=T/rnd(2.5,4);
+       return{name:'Vallen met luchtweerstand',T,f:t=>ve*(1-E(-t/tau)),df:t=>ve/tau*E(-t/tau)}},
+  ()=>{const T=pick([8,10,12,16,20]),vT=pick([15,20,25,30,40]),c=vT/Math.sqrt(T);
+       return{name:'Optrekken met constant vermogen',T,f:t=>c*Math.sqrt(t),df:t=>c/(2*Math.sqrt(t))}},
+  ()=>{const P=pick([2,4,5,6,8]),T=Math.round(P*rnd(1.2,1.6)),A=pick([1,2,3,4,5]),ph=rnd(0,TAU),w=TAU/P;
+       return{name:'Harmonische trilling',T,f:t=>A*Math.sin(w*t+ph),df:t=>A*w*Math.cos(w*t+ph)}},
+  ()=>{const T=pick([6,8,10]),vT=pick([20,30,40,50]),v0=pick([0,0,2,5]),k=(vT-v0)/(T*T);
+       return{name:'Beweging met toenemende versnelling',T,f:t=>v0+k*t*t,df:t=>2*k*t}},
+  ()=>{const T=pick([8,10,12,16,20]),v0=pick([15,20,25,30]),tau=T/rnd(1.5,4);
+       return{name:'Uitrollen met luchtweerstand',T,f:t=>v0/(1+t/tau),df:t=>-v0/(tau*(1+t/tau)**2)}}
+ ]
+};
+
+/* ---------- getallen ---------- */
+function niceStep(range,div){const raw=range/div,mag=10**Math.floor(Math.log10(raw));for(const m of [1,2,5,10])if(m*mag>=raw-1e-12)return +(m*mag).toPrecision(6);return 10*mag}
+function decs(x){for(let d=0;d<6;d++){const s=x*10**d;if(Math.abs(s-Math.round(s))<1e-6)return d}return 6}
+function fmt(v,d){if(Math.abs(v)<0.5*10**-d)v=0;return v.toFixed(d).replace('.',',').replace('-','−')}
+function sig(s){return Math.max(s.replace(/[−\-,]/g,'').replace(/^0+/,'').length,1)}
+function fmtSig(v,n){if(v===0)return '0';const d=n-1-Math.floor(Math.log10(Math.abs(v)));if(d>=0)return fmt(v,d);const p=10**-d;return fmt(Math.round(v/p)*p,0)}
+const num=s=>parseFloat(s.replace('−','-').replace(',','.'));
+const par=s=>s.startsWith('−')?'('+s+')':s;
+function vals(a0,a1,s){const r=[];for(let k=Math.ceil(a0/s-1e-7);k<=Math.floor(a1/s+1e-7);k++)r.push(+(k*s).toFixed(8));return r}
+
+/* ---------- opdracht maken ---------- */
+function makeTask(kind){
+ for(let n=0;n<300;n++){
+  const k=kind==='mix'?pick(['xt','vt']):kind,g=pick(GEN[k])();
+  const tM=niceStep(g.T,10),t1=Math.ceil(g.T/tM-1e-9)*tM;
+  let lo=Infinity,hi=-Infinity;
+  for(let i=0;i<=300;i++){const y=g.f(t1*i/300);if(!isFinite(y))continue;lo=Math.min(lo,y);hi=Math.max(hi,y)}
+  if(lo>=0)lo=0;if(hi<=0)hi=0;
+  const rg=hi-lo;if(!(rg>0))continue;
+  const yM=niceStep(rg*1.1,8);
+  const y0=lo<0?Math.floor((lo-0.04*rg)/yM)*yM:0,y1=hi>0?Math.ceil((hi+0.05*rg)/yM)*yM:0;
+  const st=t1<=12?0.5:1,c=[];
+  for(let t=Math.ceil(0.2*t1/st)*st;t<=0.8*t1+1e-9;t+=st){
+   const y=g.f(t),m=g.df(t),ang=Math.atan(Math.abs(m)*t1/(y1-y0)*0.6)*DEG,fr=(y-y0)/(y1-y0);
+   if(ang>=12&&ang<=68&&fr>0.1&&fr<0.9)c.push(+t.toFixed(3));
+  }
+  if(!c.length)continue;
+  return{k,name:g.name,f:g.f,df:g.df,ax:{t0:0,t1,tM,y0,y1,yM},td:pick(c)};
+ }
+}
+
+/* ---------- toestand ---------- */
+const S={task:null,state:'place',m:0,read:null,hover:false,drag:null,exact:false,tally:{n:0,sum:0,top:0}};
+let G={};
+function subStep(M,s){for(const n of [10,5,2])if(M/n*s>=5)return M/n;return M}
+function layout(){
+ const r=fig.getBoundingClientRect(),W=r.width,H=r.height,dpr=window.devicePixelRatio||1;
+ cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+ const nar=W<560,a=S.task.ax;
+ G={W,H,nar,X0:nar?44:60,X1:W-(nar?12:24),Y0:26,Y1:H-(nar?42:48)};
+ G.sx=(G.X1-G.X0)/(a.t1-a.t0);G.sy=(G.Y1-G.Y0)/(a.y1-a.y0);
+ G.tMin=subStep(a.tM,G.sx);G.yMin=subStep(a.yM,G.sy);
+}
+const tx=t=>G.X0+(t-S.task.ax.t0)*G.sx,ty=y=>G.Y1-(y-S.task.ax.y0)*G.sy;
+const pivot=()=>({x:tx(S.task.td),y:ty(S.task.f(S.task.td))});
+const angleOf=m=>Math.atan(m*G.sy/G.sx)*DEG;
+
+/* ---------- tekenen ---------- */
+function clip(){ctx.beginPath();ctx.rect(G.X0,G.Y0,G.X1-G.X0,G.Y1-G.Y0);ctx.clip()}
+function paper(){
+ const a=S.task.ax;
+ ctx.fillStyle='#fff';ctx.fillRect(0,0,G.W,G.H);
+ const lines=(st,sy,col,w)=>{ctx.strokeStyle=col;ctx.lineWidth=w;ctx.beginPath();
+  if(st)for(const t of vals(a.t0,a.t1,st)){const X=tx(t);ctx.moveTo(X,G.Y0);ctx.lineTo(X,G.Y1)}
+  if(sy)for(const y of vals(a.y0,a.y1,sy)){const Y=ty(y);ctx.moveTo(G.X0,Y);ctx.lineTo(G.X1,Y)}
+  ctx.stroke()};
+ lines(G.tMin<a.tM?G.tMin:0,G.yMin<a.yM?G.yMin:0,'rgba(60,130,205,.22)',.6);
+ lines(G.tMin<a.tM/2-1e-9?a.tM/2:0,G.yMin<a.yM/2-1e-9?a.yM/2:0,'rgba(60,130,205,.4)',.8);
+ lines(a.tM,a.yM,'rgba(35,95,180,.62)',1.1);
+ ctx.strokeStyle='#18212d';ctx.lineWidth=1.6;ctx.beginPath();
+ ctx.moveTo(G.X0,G.Y0-10);ctx.lineTo(G.X0,G.Y1);ctx.lineTo(G.X1+8,G.Y1);
+ if(a.y0<0&&a.y1>0){ctx.moveTo(G.X0,ty(0));ctx.lineTo(G.X1,ty(0))}
+ ctx.stroke();
+ ctx.fillStyle='#18212d';ctx.beginPath();ctx.moveTo(G.X0,G.Y0-16);ctx.lineTo(G.X0-4,G.Y0-7);ctx.lineTo(G.X0+4,G.Y0-7);ctx.fill();
+ ctx.beginPath();ctx.moveTo(G.X1+14,G.Y1);ctx.lineTo(G.X1+5,G.Y1-4);ctx.lineTo(G.X1+5,G.Y1+4);ctx.fill();
+ ctx.font=`${G.nar?12:13}px ${UI}`;
+ const kt=Math.ceil(26/(a.tM*G.sx)),ky=Math.ceil(18/(a.yM*G.sy));
+ ctx.textAlign='center';ctx.textBaseline='top';
+ vals(a.t0,a.t1,a.tM).forEach((t,i)=>{if(i%kt===0)ctx.fillText(fmt(t,decs(a.tM)),tx(t),G.Y1+6)});
+ ctx.textAlign='right';ctx.textBaseline='middle';
+ vals(a.y0,a.y1,a.yM).forEach((y,i)=>{if(i%ky===0)ctx.fillText(fmt(y,decs(a.yM)),G.X0-6,ty(y))});
+ const xt=S.task.k==='xt';
+ ctx.font=`italic ${G.nar?14:15}px ${MF}`;ctx.textBaseline='alphabetic';
+ ctx.textAlign='right';ctx.fillText('t (s)',G.X1,G.Y1+(G.nar?36:40));
+ ctx.textAlign='left';ctx.fillText(xt?'x (m)':'v (m/s)',G.X0+10,G.Y0-8);
+}
+function curve(){
+ const a=S.task.ax,f=S.task.f,N=Math.max(240,Math.round(G.X1-G.X0));
+ ctx.save();clip();ctx.strokeStyle='#121a26';ctx.lineWidth=2.4;ctx.lineJoin='round';ctx.beginPath();
+ for(let i=0;i<=N;i++){const t=a.t0+(a.t1-a.t0)*i/N,X=tx(t),Y=ty(f(t));i?ctx.lineTo(X,Y):ctx.moveTo(X,Y)}
+ ctx.stroke();ctx.restore();
+}
+function fullLine(m,col,dash,w){
+ const a=S.task.ax,t0=S.task.td,y0=S.task.f(t0);
+ ctx.save();clip();ctx.strokeStyle=col;ctx.lineWidth=w;ctx.setLineDash(dash);ctx.beginPath();
+ ctx.moveTo(tx(a.t0),ty(y0+m*(a.t0-t0)));ctx.lineTo(tx(a.t1),ty(y0+m*(a.t1-t0)));ctx.stroke();ctx.restore();
+}
+function tag(lines,x,y,ax,ay,col,solid){
+ ctx.save();
+ const fonts=solid?[`700 12px ${UI}`]:[`600 14px ${MF}`,`12px ${MF}`],lh=solid?[15]:[17,14];
+ let w=0;lines.forEach((s,i)=>{ctx.font=fonts[Math.min(i,fonts.length-1)];w=Math.max(w,ctx.measureText(s).width)});
+ w+=10;const h=lh.slice(0,lines.length).reduce((p,c)=>p+c,0)+6;
+ let bx=ax==='left'?x:ax==='right'?x-w:x-w/2,by=ay==='top'?y:ay==='bottom'?y-h:y-h/2;
+ bx=Math.max(2,Math.min(G.W-w-2,bx));by=Math.max(2,Math.min(G.H-h-2,by));
+ ctx.beginPath();ctx.roundRect?ctx.roundRect(bx,by,w,h,4):ctx.rect(bx,by,w,h);
+ ctx.fillStyle=solid?col:'rgba(255,255,255,.93)';ctx.fill();
+ if(!solid){ctx.strokeStyle='rgba(31,78,156,.25)';ctx.lineWidth=1;ctx.stroke()}
+ ctx.fillStyle=solid?'#fff':col;ctx.textAlign='center';ctx.textBaseline='top';
+ let yy=by+3;lines.forEach((s,i)=>{ctx.font=fonts[Math.min(i,fonts.length-1)];ctx.fillText(s,bx+w/2,yy+1);yy+=lh[i]});
+ ctx.restore();
+}
+function brace(x1,y1,x2,y2,nx,ny,h){
+ const len=Math.hypot(x2-x1,y2-y1);if(len<6)return;
+ const ux=(x2-x1)/len,uy=(y2-y1)/len,r=Math.min(h,len/4),g=3,P=(s,w)=>[x1+ux*s+nx*w,y1+uy*s+ny*w];
+ ctx.beginPath();ctx.moveTo(...P(0,g));
+ ctx.quadraticCurveTo(...P(0,g+h/2),...P(r,g+h/2));ctx.lineTo(...P(len/2-r,g+h/2));
+ ctx.quadraticCurveTo(...P(len/2,g+h/2),...P(len/2,g+h));
+ ctx.quadraticCurveTo(...P(len/2,g+h/2),...P(len/2+r,g+h/2));ctx.lineTo(...P(len-r,g+h/2));
+ ctx.quadraticCurveTo(...P(len,g+h/2),...P(len,g));ctx.stroke();
+}
+function dot(x,y,r,col){ctx.beginPath();ctx.arc(x,y,r+2,0,TAU);ctx.fillStyle='#fff';ctx.fill();ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.fillStyle=col;ctx.fill()}
+function construction(){
+ const R=S.read,BL='#1f4e9c',xt=S.task.k==='xt',Y=xt?'x':'v',uY=xt?'m':'m/s';
+ const A={x:tx(R.t1),y:ty(R.y1)},B={x:tx(R.t2),y:ty(R.y2)},Q={x:B.x,y:A.y};
+ const fT=v=>fmt(v,R.dT),fY=v=>fmt(v,R.dY);
+ ctx.save();
+ ctx.setLineDash([4,4]);ctx.lineWidth=1;ctx.strokeStyle='rgba(31,78,156,.8)';ctx.beginPath();
+ for(const p of [A,B]){ctx.moveTo(p.x,p.y);ctx.lineTo(G.X0,p.y);ctx.moveTo(p.x,p.y);ctx.lineTo(p.x,G.Y1)}
+ ctx.stroke();ctx.setLineDash([]);
+ ctx.lineWidth=1.7;ctx.strokeStyle=BL;ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(Q.x,Q.y);ctx.lineTo(B.x,B.y);ctx.stroke();
+ dot(A.x,A.y,4,BL);dot(B.x,B.y,4,BL);
+ tag([fY(R.y1)],G.X0-3,A.y,'right','middle',BL,true);tag([fY(R.y2)],G.X0-3,B.y,'right','middle',BL,true);
+ tag([fT(R.t1)],A.x,G.Y1+4,'center','top',BL,true);tag([fT(R.t2)],B.x,G.Y1+4,'center','top',BL,true);
+ ctx.lineWidth=1.5;ctx.strokeStyle=BL;
+ let ny=B.y<A.y?1:-1;
+ if(ny>0&&A.y+52>G.Y1)ny=-1;else if(ny<0&&A.y-52<G.Y0)ny=1;
+ brace(A.x,A.y,Q.x,Q.y,0,ny,9);
+ tag([`Δt = ${fT(R.t2-R.t1)} s`,`(${fT(R.t2)} − ${par(fT(R.t1))})`],(A.x+Q.x)/2,A.y+ny*15,'center',ny>0?'top':'bottom',BL);
+ const lab=[`Δ${Y} = ${fY(R.y2-R.y1)} ${uY}`,`(${fY(R.y2)} − ${par(fY(R.y1))})`];
+ ctx.font=`600 14px ${MF}`;const wl=ctx.measureText(lab[0]).width+40;
+ const nx=Q.x+16+wl<G.W?1:-1;
+ brace(Q.x,Q.y,B.x,B.y,nx,0,9);
+ tag(lab,Q.x+nx*15,(Q.y+B.y)/2,nx>0?'left':'right','middle',BL);
+ ctx.restore();
+}
+function ruler(){
+ const p=pivot(),th=Math.atan(S.m*G.sy/G.sx),L=Math.max(200,Math.min(580,(G.X1-G.X0)*0.68));
+ const f=S.task.f,t=S.task.td,h=1e-3*(S.task.ax.t1),d2=f(t+h)-2*f(t)+f(t-h),side=d2>=0?1:-1;
+ ctx.save();ctx.translate(p.x,p.y);ctx.rotate(-th);
+ ctx.beginPath();ctx.moveTo(-L/2,0);ctx.lineTo(L/2,0);ctx.lineTo(0,side*L/2);ctx.closePath();
+ ctx.fillStyle='rgba(120,175,230,.17)';ctx.fill();ctx.strokeStyle='rgba(30,80,150,.45)';ctx.lineWidth=1;ctx.stroke();
+ ctx.beginPath();ctx.moveTo(-L*.2,side*L*.07);ctx.lineTo(L*.2,side*L*.07);ctx.lineTo(0,side*L*.27);ctx.closePath();
+ ctx.strokeStyle='rgba(30,80,150,.3)';ctx.stroke();
+ ctx.strokeStyle='rgba(25,55,105,.65)';ctx.lineWidth=.8;ctx.beginPath();
+ const n=80;ctx.font=`10px ${UI}`;ctx.fillStyle='rgba(25,55,105,.8)';ctx.textAlign='center';ctx.textBaseline='middle';
+ for(let i=-n/2;i<=n/2;i++){const u=i*L/n*.92,len=i%10===0?11:i%5===0?7:4;ctx.moveTo(u,0);ctx.lineTo(u,side*len);
+  if(i%10===0)ctx.fillText(String(Math.abs(i/10)),u,side*20)}
+ ctx.stroke();
+ ctx.strokeStyle='#c62d2d';ctx.lineWidth=1.9;ctx.beginPath();ctx.moveTo(-L/2,0);ctx.lineTo(L/2,0);ctx.stroke();
+ ctx.restore();
+}
+function target(){
+ const p=pivot(),OR='#d9480f';
+ if(S.state==='place'){
+  ctx.save();ctx.setLineDash([2,4]);ctx.strokeStyle=OR;ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x,G.Y1);ctx.stroke();ctx.restore();
+  tag([`t = ${fmt(S.task.td,1)} s`],p.x,G.Y1-6,'center','bottom',OR,true);
+  const k=RM.matches?.5:.5+.5*Math.sin((S.pulse||0)/320);
+  ctx.beginPath();ctx.arc(p.x,p.y,(S.hover?13:10)+5*k,0,TAU);ctx.strokeStyle=`rgba(217,72,15,${.25+.35*(1-k)})`;ctx.lineWidth=2;ctx.stroke();
+ }
+ dot(p.x,p.y,S.state==='place'?5.5:4,S.state==='place'?OR:'#18212d');
+}
+function draw(){
+ if(!S.task)return;
+ paper();curve();
+ if(S.state==='locked'){
+  if(S.exact)fullLine(S.task.df(S.task.td),'#11805a',[8,5],2);
+  fullLine(S.m,'#c62d2d',[],2.1);construction();
+ }
+ if(S.state==='aim')ruler();
+ target();
+}
+
+/* ---------- aflezen ---------- */
+function readings(m){
+ const a=S.task.ax,t0=S.task.td,y0=S.task.f(t0),L=t=>y0+m*(t-t0),flat=Math.abs(m)<1e-12;
+ let lo=a.t0,hi=a.t1;
+ if(!flat){const tA=t0+(a.y0-y0)/m,tB=t0+(a.y1-y0)/m;lo=Math.max(lo,Math.min(tA,tB));hi=Math.min(hi,Math.max(tA,tB))}
+ const span=hi-lo;if(!(span>0))return null;
+ lo+=0.03*span;hi-=0.03*span;
+ const rt=G.tMin,ry=G.yMin,cs=[];
+ for(const t of vals(lo,hi,rt)){const y=L(t),yr=+(Math.round(y/ry)*ry).toFixed(8);cs.push({t,y:yr,r:Math.abs(y-yr)*G.sy})}
+ if(!flat){const yl=Math.min(L(lo),L(hi)),yh=Math.max(L(lo),L(hi));
+  for(const y of vals(yl,yh,ry)){const t=t0+(y-y0)/m,tr=+(Math.round(t/rt)*rt).toFixed(8);if(tr<lo-1e-9||tr>hi+1e-9)continue;cs.push({t:tr,y,r:Math.abs(t-tr)*G.sx})}}
+ const zone=0.35*(hi-lo);
+ const best=(ok,pen)=>{let b=null,bs=Infinity;for(const c of cs){if(!ok(c))continue;const s=c.r+pen(c);if(s<bs){bs=s;b=c}}return b};
+ const p1=best(c=>c.t<=lo+zone,c=>(c.t-lo)/zone*10),p2=best(c=>c.t>=hi-zone,c=>(hi-c.t)/zone*10);
+ if(!p1||!p2||p2.t-p1.t<=0)return null;
+ return{t1:p1.t,y1:p1.y,t2:p2.t,y2:p2.y,dT:Math.max(1,decs(rt)),dY:Math.max(1,decs(ry))};
+}
+
+/* ---------- uitwerking ---------- */
+const V=s=>`<i class="v">${s}</i>`,D=s=>`<span>Δ${V(s)}</span>`,frac=(a,b)=>`<span class="frac"><span>${a}</span><span>${b}</span></span>`;
+function showResult(){
+ const T=S.task,R=S.read,xt=T.k==='xt';
+ const Y=xt?'x':'v',Qs=xt?'v':'a',uY=xt?'m':'m/s',uQ=xt?'m/s':'m/s²';
+ const fT=v=>fmt(v,R.dT),fY=v=>fmt(v,R.dY);
+ const sY=fY(R.y2-R.y1),sT=fT(R.t2-R.t1),n=Math.max(2,Math.min(sig(sY),sig(sT)));
+ const mS=num(sY)/num(sT),mE=T.df(T.td),sS=fmtSig(mS,n),sE=fmtSig(mE,3);
+ const dev=Math.abs((num(sS)-num(sE))/num(sE))*100,steep=Math.abs(mS)>Math.abs(mE);
+ let cls,msg;
+ if(mS*mE<0){cls='bad';msg='Je raaklijn helt de verkeerde kant op. Kijk of de grafiek bij dit punt stijgt of daalt en probeer het opnieuw.'}
+ else if(dev<5){cls='good';msg='Uitstekend! Binnen de examenmarge.'}
+ else if(dev<=15){cls='ok';msg=`Redelijk. Kijk goed of de lijn aan beide kanten evenveel ruimte overlaat. Je lijn is iets te ${steep?'steil':'vlak'}.`}
+ else{cls='bad';msg=`Te ${steep?'steil':'vlak'} getekend. Probeer het opnieuw.`}
+ $('uitwerking').innerHTML=`<h2>Uitwerking</h2>
+  <p class="small">Afgelezen op jouw raaklijn: (${fT(R.t1)} s; ${fY(R.y1)} ${uY}) en (${fT(R.t2)} s; ${fY(R.y2)} ${uY})</p>
+  <div class="eq">${D(Y)} = ${fY(R.y2)} − ${par(fY(R.y1))} = ${sY} ${uY}</div>
+  <div class="eq">${D('t')} = ${fT(R.t2)} − ${par(fT(R.t1))} = ${sT} s</div>
+  <div class="eq big">${V(Qs)} = ${frac('Δ'+V(Y),'Δ'+V('t'))} = ${frac(sY,sT)} = <b>${sS} ${uQ}</b></div>
+  <p class="small">Afgerond op ${n} significante cijfers: het kleinste aantal van Δ${V(Y)} en Δ${V('t')}.</p>`;
+ $('oordeel').innerHTML=`<h2>Beoordeling</h2>
+  <table><tr><td>Jouw raaklijn</td><td>${sS} ${uQ}</td></tr><tr><td>Exacte waarde (afgeleide)</td><td>${sE} ${uQ}</td></tr><tr><td>Afwijking</td><td>${fmt(dev,1)}%</td></tr></table>
+  <div class="eq" style="font-size:17px">afwijking = ${frac(`|${sS} − ${par(sE)}|`,`|${sE}|`)} × 100% = ${fmt(dev,1)}%</div>
+  <p class="verdict ${cls}">${msg}</p>`;
+ const t=S.tally;t.n++;t.sum+=dev;if(dev<5&&mS*mE>0)t.top++;
+ $('tally').textContent=`Raaklijnen getekend: ${t.n} · gemiddelde afwijking: ${fmt(t.sum/t.n,1)}% · uitstekend: ${t.top}×`;
+ $('result').hidden=false;
+ requestAnimationFrame(()=>$('result').scrollIntoView({block:'nearest',behavior:RM.matches?'auto':'smooth'}));
+}
+
+/* ---------- interactie ---------- */
+function ui(){
+ const st=S.state;
+ ['s1','s2','s3'].forEach((id,i)=>$(id).classList.toggle('on',['place','aim','locked'][i]===st));
+ $('plaats').disabled=st!=='place';$('min').disabled=$('plus').disabled=$('teken').disabled=st!=='aim';
+ $('hoek').textContent=st==='aim'?`hoek ${fmt(angleOf(S.m),1)}°`:'–';
+ const s=$('status');s.classList.remove('warn');
+ s.textContent=st==='place'?'Klik op het oranje punt op de grafiek, of druk op "Plaats liniaal".'
+  :st==='aim'?'Sleep over de grafiek om de liniaal te draaien (of scrollwiel, knoppen, ←/→, Shift = 0,1°). Klik of Enter om de raaklijn te tekenen.'
+  :'Raaklijn getekend. Bekijk de uitwerking hieronder.';
+ cv.style.cursor=st==='place'?(S.hover?'pointer':'crosshair'):st==='aim'?(S.drag?'grabbing':'grab'):'default';
+ cv.style.touchAction=st==='aim'?'none':'pan-y';
+}
+let raf=0;
+function loop(ts){if(S.state!=='place'){raf=0;return}S.pulse=ts;draw();raf=requestAnimationFrame(loop)}
+function pulse(){if(!raf&&!RM.matches)raf=requestAnimationFrame(loop)}
+function setQuestion(){
+ const T=S.task,xt=T.k==='xt';
+ $('opdracht').innerHTML=`Bepaal met de raaklijnmethode de <b>${xt?'snelheid':'versnelling'}</b> op ${V('t')} = ${fmt(T.td,1)} s.`;
+ $('context').textContent=`${T.name} · (${xt?'x':'v'},t)-diagram`;
+}
+function reset(){
+ S.state='place';S.m=0;S.read=null;S.drag=null;S.exact=false;$('exact').checked=false;$('result').hidden=true;
+ layout();setQuestion();ui();draw();pulse();
+}
+function newTask(){S.task=makeTask(soort.value);reset()}
+function startAim(){if(S.state!=='place')return;S.state='aim';S.m=0;S.hover=false;ui();draw()}
+function setAngle(th){th=Math.max(-89.5,Math.min(89.5,th));S.m=Math.tan(th/DEG)*G.sx/G.sy;ui();draw()}
+function rotate(d){if(S.state==='aim')setAngle(Math.round((angleOf(S.m)+d)*10)/10)}
+function lock(){
+ if(S.state!=='aim')return;
+ const R=readings(S.m);
+ if(!R){const s=$('status');s.textContent='Deze lijn valt bijna buiten het rooster. Draai hem iets bij.';s.classList.add('warn');return}
+ S.read=R;S.state='locked';S.drag=null;ui();draw();showResult();
+}
+const pos=e=>{const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+cv.addEventListener('pointerdown',e=>{
+ const p=pos(e);
+ if(S.state==='place'){
+  const q=pivot();
+  if(Math.hypot(p.x-q.x,p.y-q.y)<=(e.pointerType==='touch'?40:26))startAim();
+  else{const s=$('status');s.textContent='Klik op (of vlak bij) het oranje punt, of gebruik "Plaats liniaal".';s.classList.add('warn')}
+ }else if(S.state==='aim'){S.drag={x:p.x,y:p.y,moved:false};cv.setPointerCapture(e.pointerId);ui()}
+});
+cv.addEventListener('pointermove',e=>{
+ const p=pos(e);
+ if(S.state==='place'){const q=pivot(),h=Math.hypot(p.x-q.x,p.y-q.y)<=26;if(h!==S.hover){S.hover=h;ui();draw()}}
+ else if(S.state==='aim'&&S.drag){
+  if(!S.drag.moved&&Math.hypot(p.x-S.drag.x,p.y-S.drag.y)<4)return;
+  S.drag.moved=true;const q=pivot(),dx=p.x-q.x,dy=q.y-p.y;
+  if(Math.hypot(dx,dy)<14)return;
+  setAngle(dx===0?89.5:Math.atan(dy/dx)*DEG);
+ }
+});
+cv.addEventListener('pointerup',()=>{if(S.state==='aim'&&S.drag){const click=!S.drag.moved;S.drag=null;if(click)lock();else ui()}});
+cv.addEventListener('pointercancel',()=>{S.drag=null;ui()});
+let acc=0;
+cv.addEventListener('wheel',e=>{
+ if(S.state!=='aim')return;e.preventDefault();
+ acc+=e.deltaY*(e.deltaMode===1?16:1);const step=e.shiftKey?0.1:0.5;
+ while(Math.abs(acc)>=40){rotate(acc<0?step:-step);acc-=Math.sign(acc)*40}
+},{passive:false});
+document.addEventListener('keydown',e=>{
+ if(e.target.closest('select,input'))return;
+ if(e.key==='Enter'&&e.target.closest('button,a'))return;
+ const step=e.shiftKey?0.1:0.5;
+ if(S.state==='aim'){
+  if(e.key==='ArrowUp'||e.key==='ArrowRight'){e.preventDefault();rotate(step)}
+  else if(e.key==='ArrowDown'||e.key==='ArrowLeft'){e.preventDefault();rotate(-step)}
+  else if(e.key==='Enter'){e.preventDefault();lock()}
+  else if(e.key==='Escape')reset();
+ }else if(S.state==='place'&&e.key==='Enter'){e.preventDefault();startAim()}
+});
+$('plaats').onclick=startAim;$('min').onclick=()=>rotate(-0.5);$('plus').onclick=()=>rotate(0.5);$('teken').onclick=lock;
+$('opnieuw').onclick=reset;$('volgende').onclick=newTask;$('nieuw').onclick=newTask;
+$('exact').onchange=e=>{S.exact=e.target.checked;draw()};
+soort.onchange=()=>{try{localStorage.setItem('raaklijn-soort',soort.value)}catch(_){}newTask()};
+try{const v=localStorage.getItem('raaklijn-soort');if(v&&[...soort.options].some(o=>o.value===v))soort.value=v}catch(_){}
+const ro=new ResizeObserver(()=>{if(S.task){layout();draw()}});ro.observe(fig);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>draw());
+newTask();
+}
+</script>
+</body>
+</html>
