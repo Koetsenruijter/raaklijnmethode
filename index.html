@@ -461,7 +461,6 @@ function construction(L,col){
  ctx.setLineDash([4,4]);ctx.lineWidth=1;ctx.strokeStyle=col===BL?'rgba(31,78,156,.75)':'rgba(217,72,15,.8)';ctx.beginPath();
  for(const p of [A,B]){ctx.moveTo(G.X0,p.y);ctx.lineTo(G.X1+4,p.y);ctx.moveTo(p.x,p.y);ctx.lineTo(p.x,G.Y1+24)}
  ctx.stroke();ctx.setLineDash([]);
- ctx.lineWidth=1.5;ctx.strokeStyle=col;ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,A.y);ctx.lineTo(B.x,B.y);ctx.stroke();
  dot(A.x,A.y,4,col);dot(B.x,B.y,4,col);
  tag([q.y1],G.X0-3,A.y,'right','middle',col,true);tag([q.y2],G.X0-3,B.y,'right','middle',col,true);
  tag([q.t1],A.x,G.Y1+4,'center','top',col,true);tag([q.t2],B.x,G.Y1+4,'center','top',col,true);
@@ -561,26 +560,32 @@ function readings(m){
  let lo=a.t0,hi=a.t1;
  if(!flat){const tA=t0+(a.y0-y0)/m,tB=t0+(a.y1-y0)/m;lo=Math.max(lo,Math.min(tA,tB));hi=Math.min(hi,Math.max(tA,tB))}
  const span=hi-lo;if(!(span>0))return null;
- const rt=G.tMin,ry=G.yMin,dT=decs(rt),dY=decs(ry),rnd2=(v,r)=>+(Math.round(v/r)*r).toFixed(8);
+ const d10=x=>10**Math.floor(Math.log10(x)+1e-9),rt=d10(G.tMin),ry=d10(G.yMin),dT=decs(rt),dY=decs(ry),r2=(v,r)=>+(Math.round(v/r)*r).toFixed(8);
+ // 1) snijpunten met de assen
  const ax=[];
- if(lo<=a.t0+1e-9)ax.push(T.start?{t:a.t0,y:+L(a.t0).toFixed(dY)}:{t:a.t0,y:rnd2(L(a.t0),ry)});
- if(!flat&&a.y0<=0&&a.y1>=0){const tz=t0-y0/m;if(tz>=lo-1e-9&&tz<=hi+1e-9&&tz>a.t0+0.05*span)ax.push({t:Math.min(rnd2(tz,rt),a.t1),y:0})}
- const li=lo+0.03*span,hj=hi-0.03*span,cs=[];
- for(const t of vals(li,hj,rt)){const y=L(t),yr=rnd2(y,ry);cs.push({t,y:yr,r:Math.abs(y-yr)*G.sy})}
- if(!flat){const yl=Math.min(L(li),L(hj)),yh=Math.max(L(li),L(hj));
-  for(const y of vals(yl,yh,ry)){const t=t0+(y-y0)/m,tr=rnd2(t,rt);if(tr<li-1e-9||tr>hj+1e-9)continue;cs.push({t:tr,y,r:Math.abs(t-tr)*G.sx})}}
- const zone=0.35*(hj-li);
- const best=(ok,pen)=>{let b=null,bs=Infinity;for(const c of cs){if(!ok(c))continue;const s=c.r+pen(c);if(s<bs){bs=s;b=c}}return b};
- const farR=()=>best(c=>c.t>=hj-zone,c=>(hj-c.t)/zone*10),farL=()=>best(c=>c.t<=li+zone,c=>(c.t-li)/zone*10);
- let p1,p2;
+ if(lo<=a.t0+1e-9)ax.push(T.start?{t:a.t0,y:+L(a.t0).toFixed(dY)}:{t:a.t0,y:r2(L(a.t0),ry)});
+ if(!flat&&a.y0<=0&&a.y1>=0){const tz=t0-y0/m;if(tz>=lo-1e-9&&tz<=hi+1e-9&&tz>a.t0+0.05*span)ax.push({t:Math.min(r2(tz,rt),a.t1),y:0})}
+ // 2) ronde getallen op de tijdas (dikke roosterlijnen, ook op de rand) en anders op de verticale as
+ const rT=vals(lo,hi,a.tM).map(t=>({t,y:r2(L(t),ry)}));
+ const rY=flat?[]:vals(Math.min(L(lo),L(hi)),Math.max(L(lo),L(hi)),a.yM).map(y=>({t:r2(t0+(y-y0)/m,rt),y})).filter(c=>c.t>=a.t0-1e-9&&c.t<=a.t1+1e-9);
+ const far=(A,list)=>{let b=null,bd=-1;for(const c of list){const d=Math.abs(c.t-A.t);if(d>bd){bd=d;b=c}}return b?{c:b,d:bd}:null};
+ const pickFar=A=>{const fT=far(A,rT),fY=far(A,rY);let c=null;
+  if(fT&&fT.d>=0.4*span&&(!fY||fT.d>=0.75*fY.d))c=fT.c;else if(fY&&fY.d>=0.4*span)c=fY.c;else if(fT&&fT.d>=0.4*span)c=fT.c;return c};
+ let p1=null,p2=null;
  if(ax.length===2&&ax[1].t-ax[0].t>=0.4*span){[p1,p2]=ax}
- else if(ax.length){
-  const A=ax[0],far=A.t<(lo+hi)/2?farR():farL();
-  if(far&&Math.abs(far.t-A.t)>=0.4*span){[p1,p2]=A.t<far.t?[A,far]:[far,A]}
+ else if(ax.length){const A=ax[0],B=pickFar(A);if(B)[p1,p2]=A.t<B.t?[A,B]:[B,A]}
+ if(!p1){
+  const pool=rT.length>=2&&rT[rT.length-1].t-rT[0].t>=0.4*span?rT:[...rT,...rY].sort((u,v)=>u.t-v.t);
+  if(pool.length>=2&&pool[pool.length-1].t-pool[0].t>=0.4*span){p1=pool[0];p2=pool[pool.length-1]}
  }
- if(!p1){p1=farL();p2=farR()}
+ if(!p1){ // terugval: twee goed afleesbare roosterpunten
+  const rt2=G.tMin,ry2=G.yMin,li=lo+0.03*span,hj=hi-0.03*span,cs=[];
+  for(const t of vals(li,hj,rt2)){const y=L(t),yr=r2(y,ry2);cs.push({t,y:yr,r:Math.abs(y-yr)*G.sy})}
+  const zone=0.35*(hj-li),best=(ok,pen)=>{let b=null,bs=Infinity;for(const c of cs){if(!ok(c))continue;const q=c.r+pen(c);if(q<bs){bs=q;b=c}}return b};
+  p1=best(c=>c.t<=li+zone,c=>(c.t-li)/zone*10);p2=best(c=>c.t>=hj-zone,c=>(hj-c.t)/zone*10);
+ }
  if(!p1||!p2||p2.t-p1.t<=0)return null;
- return{t1:p1.t,y1:p1.y,t2:p2.t,y2:p2.y,dT,dY};
+ return{t1:p1.t,y1:p1.y,t2:p2.t,y2:p2.y,dT:Math.max(dT,0),dY:Math.max(dY,0)};
 }
 
 /* ---------- uitwerkingen ---------- */
