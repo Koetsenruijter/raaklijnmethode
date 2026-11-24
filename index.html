@@ -909,7 +909,7 @@ $('model').onchange=e=>{S.model=e.target.checked;draw()};
 const save=()=>{try{localStorage.setItem('raaklijn-soort3',soort.value);localStorage.setItem('raaklijn-opt',JSON.stringify(S.opt))}catch(_){}};
 const syncOpts=()=>{$('o_exam_wrap').hidden=soort.value!=='timmer';$('o_hard_wrap').hidden=!S.opt.self;if(!S.opt.self&&S.opt.hard){S.opt.hard=false;$('o_hard').checked=false;save()}};
 soort.onchange=()=>{save();syncOpts();newTask()};
-for(const [id,k] of [['o_self','self'],['o_exam','exam'],['o_hard','hard']])$(id).onchange=e=>{S.opt[k]=e.target.checked;save();syncOpts();if(k==='exam'){ui();draw()}else newTask()};
+for(const [id,k] of [['o_self','self'],['o_exam','exam'],['o_hard','hard']])$(id).onchange=e=>{S.opt[k]=e.target.checked;save();syncOpts();if(k==='exam'){ui();draw()}else if(k==='self')reset();else newTask()};
 try{const v=localStorage.getItem('raaklijn-soort3');if(v&&[...soort.options].some(o=>o.value===v))soort.value=v;
  const o=JSON.parse(localStorage.getItem('raaklijn-opt')||'{}');for(const k of ['self','exam','hard'])S.opt[k]=!!o[k]}catch(_){}
 $('o_self').checked=S.opt.self;$('o_exam').checked=S.opt.exam;$('o_hard').checked=S.opt.hard;syncOpts();
