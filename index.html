@@ -93,7 +93,7 @@ li.ok b.ic{color:var(--goodi)}li.bad b.ic{color:var(--badi)}li.tip b.ic{color:va
 <header>
   <div>
     <h1>Raaklijn en gemiddelde snelheid</h1>
-    <p>Oefen het aflezen van (<i>x</i>,<i>t</i>)- en (<i>v</i>,<i>t</i>)-diagrammen: bepaal een helling met de raaklijnmethode of schat een gemiddelde snelheid met gelijke oppervlakken.</p>
+    <p>Oefen het aflezen van (<i>x</i>,<i>t</i>)- en (<i>v</i>,<i>t</i>)-diagrammen: bepaal een helling met de raaklijnmethode of schat een gemiddelde snelheid met de methode van gelijke oppervlakken.</p>
   </div>
   <div class="ctrl">
     <label class="sel">Oefening
@@ -167,7 +167,7 @@ li.ok b.ic{color:var(--goodi)}li.bad b.ic{color:var(--badi)}li.tip b.ic{color:va
   </div>
   <div id="m_timmer">
   <h3>Gemiddelde snelheid schatten</h3>
-  <p class="small" style="margin:0 0 4px">Je schat met gelijke oppervlakken. Deze methode heet ook wel het <em>timmermansoog</em>.</p>
+  <p class="small" style="margin:0 0 4px">Je schat met de methode van gelijke oppervlakken, ook wel het <em>timmermansoog</em> genoemd.</p>
   <ol>
     <li>Trek tussen de twee tijdstippen een horizontale lijn door de grafiek.</li>
     <li>Schuif de lijn tot de oppervlakte tussen grafiek en lijn <em>boven</em> de lijn even groot is als <em>onder</em> de lijn.</li>
@@ -337,14 +337,14 @@ function makeTimmer(hard){
   if(hard){if(!alt){if(!g.kmh)continue;uy='km/h'}if(Math.random()<0.4)tOff=niceStep(g.T,10)*pick([5,10,15,20])}
   const f=t=>g.f(t-tOff),ax=axesFor(g.T,f,tOff,hard);if(!ax)continue;
   const R=ax.t1-ax.t0,st=R/ax.tM>=8?ax.tM:ax.tM/2,N=Math.round(R/st);
-  const len=Math.round(rnd(0.35,0.75)*N),i0=Math.floor(Math.random()*(N-len+1));
+  const full=Math.random()<0.18,len=full?N:Math.round(rnd(0.35,0.75)*N),i0=full?0:Math.floor(Math.random()*(N-len+1));
   if(len<2)continue;
   const ta=+(ax.t0+i0*st).toFixed(6),tb=+(ax.t0+(i0+len)*st).toFixed(6),H=ax.y1-ax.y0;
   let mn=Infinity,mx=-Infinity,dev=0;const fa=f(ta),fb=f(tb);
   for(let i=0;i<=200;i++){const t=ta+(tb-ta)*i/200,y=f(t);mn=Math.min(mn,y);mx=Math.max(mx,y);dev=Math.max(dev,Math.abs(y-(fa+(fb-fa)*(t-ta)/(tb-ta))))}
-  if(!(mn>0&&mn-ax.y0>0.03*H)||dev<0.07*H||!isFinite(mx))continue;
+  if(!(full?mn>=-1e-9:mn>0&&mn-ax.y0>0.03*H)||dev<0.07*H||!isFinite(mx))continue;
   const vE=integ(f,ta,tb)/(tb-ta);
-  return{mode:'timmer',k:'vt',name:g.name,f,ax,ta,tb,mn,mx,vE,dT:Math.max(1,decs(st)),U:unitsFor('vt',uy,ut),hard};
+  return{mode:'timmer',k:'vt',full,name:g.name,f,ax,ta,tb,mn,mx,vE,dT:Math.max(1,decs(st)),U:unitsFor('vt',uy,ut),hard};
  }
 }
 function makeTask(c){
@@ -779,7 +779,7 @@ function setQuestion(){
    :`Bepaal met de raaklijnmethode de <b>${xt?'snelheid':'versnelling'}</b> op ${V('t')} = ${fmt(T.td,1)} ${U.ut}.`)+(U.conv?` Geef je antwoord in ${U.req}.`:'');
   $('context').textContent=`${T.name} · (${xt?'x':'v'},t)-diagram${T.hard?' · extra uitdaging':''}`;
  }else{
-  $('opdracht').innerHTML=`Schat de <b>gemiddelde snelheid</b> tussen ${V('t')} = ${fmt(T.ta,T.dT)} ${U.ut} en ${V('t')} = ${fmt(T.tb,T.dT)} ${U.ut}. Bereken daarmee de afgelegde afstand in m.`;
+  $('opdracht').innerHTML=`Schat de <b>gemiddelde snelheid</b> ${T.full?'over de hele beweging, van':'tussen'} ${V('t')} = ${fmt(T.ta,T.dT)} ${U.ut} ${T.full?'tot':'en'} ${V('t')} = ${fmt(T.tb,T.dT)} ${U.ut}. Bereken daarmee de afgelegde afstand in m.`;
   $('context').textContent=`${T.name} · (v,t)-diagram${T.hard?' · extra uitdaging':''}`;
  }
 }
