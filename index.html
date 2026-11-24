@@ -434,20 +434,32 @@ function draw(){
 
 /* ---------- aflezen raaklijn ---------- */
 function readings(m){
- const a=S.task.ax,t0=S.task.td,y0=S.task.f(t0),L=t=>y0+m*(t-t0),flat=Math.abs(m)<1e-12;
+ const T=S.task,a=T.ax,t0=T.td,y0=T.f(t0),L=t=>y0+m*(t-t0),flat=Math.abs(m)<1e-12;
  let lo=a.t0,hi=a.t1;
  if(!flat){const tA=t0+(a.y0-y0)/m,tB=t0+(a.y1-y0)/m;lo=Math.max(lo,Math.min(tA,tB));hi=Math.min(hi,Math.max(tA,tB))}
  const span=hi-lo;if(!(span>0))return null;
- lo+=0.03*span;hi-=0.03*span;
- const rt=G.tMin,ry=G.yMin,cs=[];
- for(const t of vals(lo,hi,rt)){const y=L(t),yr=+(Math.round(y/ry)*ry).toFixed(8);cs.push({t,y:yr,r:Math.abs(y-yr)*G.sy})}
- if(!flat){const yl=Math.min(L(lo),L(hi)),yh=Math.max(L(lo),L(hi));
-  for(const y of vals(yl,yh,ry)){const t=t0+(y-y0)/m,tr=+(Math.round(t/rt)*rt).toFixed(8);if(tr<lo-1e-9||tr>hi+1e-9)continue;cs.push({t:tr,y,r:Math.abs(t-tr)*G.sx})}}
- const zone=0.35*(hi-lo);
+ const rt=G.tMin,ry=G.yMin,dT=Math.max(1,decs(rt)),dY=Math.max(1,decs(ry)),rnd2=(v,r)=>+(Math.round(v/r)*r).toFixed(8);
+ // snijpunten met de assen: t = 0 (verticale as) en x of v = 0 (tijdas)
+ const ax=[];
+ if(lo<=a.t0+1e-9)ax.push(T.start?{t:a.t0,y:+L(a.t0).toFixed(dY)}:{t:a.t0,y:rnd2(L(a.t0),ry)});
+ if(!flat&&a.y0<=0&&a.y1>=0){const tz=t0-y0/m;if(tz>=lo-1e-9&&tz<=hi+1e-9&&tz>a.t0+0.05*span)ax.push({t:Math.min(rnd2(tz,rt),a.t1),y:0})}
+ // goed afleesbare roosterpunten verder op de lijn
+ const li=lo+0.03*span,hj=hi-0.03*span,cs=[];
+ for(const t of vals(li,hj,rt)){const y=L(t),yr=rnd2(y,ry);cs.push({t,y:yr,r:Math.abs(y-yr)*G.sy})}
+ if(!flat){const yl=Math.min(L(li),L(hj)),yh=Math.max(L(li),L(hj));
+  for(const y of vals(yl,yh,ry)){const t=t0+(y-y0)/m,tr=rnd2(t,rt);if(tr<li-1e-9||tr>hj+1e-9)continue;cs.push({t:tr,y,r:Math.abs(t-tr)*G.sx})}}
+ const zone=0.35*(hj-li);
  const best=(ok,pen)=>{let b=null,bs=Infinity;for(const c of cs){if(!ok(c))continue;const s=c.r+pen(c);if(s<bs){bs=s;b=c}}return b};
- const p1=best(c=>c.t<=lo+zone,c=>(c.t-lo)/zone*10),p2=best(c=>c.t>=hi-zone,c=>(hi-c.t)/zone*10);
+ const farR=()=>best(c=>c.t>=hj-zone,c=>(hj-c.t)/zone*10),farL=()=>best(c=>c.t<=li+zone,c=>(c.t-li)/zone*10);
+ let p1,p2;
+ if(ax.length===2&&ax[1].t-ax[0].t>=0.4*span){[p1,p2]=ax}
+ else if(ax.length){
+  const A=ax[0],far=A.t<(lo+hi)/2?farR():farL();
+  if(far&&Math.abs(far.t-A.t)>=0.4*span){[p1,p2]=A.t<far.t?[A,far]:[far,A]}
+ }
+ if(!p1){p1=farL();p2=farR()}
  if(!p1||!p2||p2.t-p1.t<=0)return null;
- return{t1:p1.t,y1:p1.y,t2:p2.t,y2:p2.y,dT:Math.max(1,decs(rt)),dY:Math.max(1,decs(ry))};
+ return{t1:p1.t,y1:p1.y,t2:p2.t,y2:p2.y,dT,dY};
 }
 
 /* ---------- uitwerking ---------- */
