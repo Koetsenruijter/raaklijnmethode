@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Raaklijn en timmermansoog</title>
+<title>Raaklijn en gemiddelde snelheid</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
@@ -35,7 +35,8 @@ button:disabled{opacity:.4;cursor:not-allowed}
 #opdracht{font-size:clamp(18px,2.3vw,22px);margin:0;line-height:1.35}
 #context{color:var(--muted);font-size:14px;margin-top:2px}
 .m,i.v{font-family:"STIX Two Text","Cambria Math",Georgia,serif}
-i.v{font-size:1.1em}
+i.v{font-style:italic}
+.m sub{font-style:normal}
 sub{font-size:.7em}
 .fig{position:relative;width:100%;height:clamp(360px,64vw,660px);overflow:hidden;background:#fff;border-inline:1px solid var(--line)}
 .fig canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:pan-y}
@@ -90,14 +91,14 @@ li.ok b.ic{color:var(--goodi)}li.bad b.ic{color:var(--badi)}li.tip b.ic{color:va
 <div class="wrap">
 <header>
   <div>
-    <h1>Raaklijn en timmermansoog</h1>
-    <p>Oefen het aflezen van (<i>x</i>,<i>t</i>)- en (<i>v</i>,<i>t</i>)-diagrammen: bepaal een helling met de raaklijnmethode of schat een gemiddelde met het timmermansoog.</p>
+    <h1>Raaklijn en gemiddelde snelheid</h1>
+    <p>Oefen het aflezen van (<i>x</i>,<i>t</i>)- en (<i>v</i>,<i>t</i>)-diagrammen: bepaal een helling met de raaklijnmethode of schat een gemiddelde snelheid met gelijke oppervlakken.</p>
   </div>
   <div class="ctrl">
     <label class="sel">Oefening
       <select id="soort">
         <option value="raak">Raaklijnmethode</option>
-        <option value="timmer">Timmermansoog</option>
+        <option value="timmer">Gemiddelde snelheid (gelijke oppervlakken)</option>
         <option value="alles">Alles door elkaar</option>
       </select>
     </label>
@@ -159,7 +160,8 @@ li.ok b.ic{color:var(--goodi)}li.bad b.ic{color:var(--badi)}li.tip b.ic{color:va
     <li>Kies twee punten óp de raaklijn die ver uit elkaar liggen en goed af te lezen zijn.</li>
     <li>Bereken de helling: <span class="m"><i>v</i> = Δ<i>x</i>/Δ<i>t</i></span> of <span class="m"><i>a</i> = Δ<i>v</i>/Δ<i>t</i></span>.</li>
   </ol>
-  <h3>Timmermansoog</h3>
+  <h3>Gemiddelde snelheid met gelijke oppervlakken</h3>
+  <p class="small" style="margin:0 0 4px">Deze methode heet ook wel het <em>timmermansoog</em>.</p>
   <ol>
     <li>Trek tussen de twee tijdstippen een horizontale lijn door de grafiek.</li>
     <li>Schuif de lijn tot de oppervlakte tussen grafiek en lijn <em>boven</em> de lijn even groot is als <em>onder</em> de lijn.</li>
@@ -530,7 +532,7 @@ function readings(m){
 }
 
 /* ---------- uitwerkingen ---------- */
-const V=s=>`<i class="v">${s}</i>`,D=s=>`<span>Δ${V(s)}</span>`,VG=`<span>${V('v')}<sub>gem</sub></span>`;
+const V=s=>`<i class="v">${s}</i>`,D=s=>`<span class="m">Δ${V(s)}</span>`,VG=`<span class="m">${V('v')}<sub>gem</sub></span>`;
 const frac=(a,b)=>`<span class="frac"><span>${a}</span><span>${b}</span></span>`;
 const verdictBox=(cls,msg)=>`<p class="verdict ${cls}">${msg}</p>`;
 function modelRaak(title){
@@ -541,9 +543,9 @@ function modelRaak(title){
  let h=`<h2>${title}</h2><p class="small">Afgelezen op jouw raaklijn${S.opt.self?' (punten gekozen door de app)':''}: (${fT(R.t1)} s; ${fY(R.y1)} ${U.uy}) en (${fT(R.t2)} s; ${fY(R.y2)} ${U.uy})</p>
   <div class="eq">${D(Y)} = ${fY(R.y2)} − ${par(fY(R.y1))} = ${sY} ${U.uy}</div>
   <div class="eq">${D('t')} = ${fT(R.t2)} − ${par(fT(R.t1))} = ${sT} s</div>
-  <div class="eq big">${V(Qs)} = ${frac('Δ'+V(Y),'Δ'+V('t'))} = ${frac(sY,sT)} = <b>${sN} ${U.nat}</b></div>`;
+  <div class="eq big">${V(Qs)} = ${frac(D(Y),D('t'))} = ${frac(sY,sT)} = <b>${sN} ${U.nat}</b></div>`;
  if(conv)h+=`<div class="eq big">${V(Qs)} = <b>${sR} ${U.req}</b></div><p class="small">Omrekenen: ${U.how}.</p>`;
- h+=`<p class="small">Afgerond op ${n} significante cijfers: het kleinste aantal van Δ${V(Y)} en Δ${V('t')}.</p>`;
+ h+=`<p class="small">Afgerond op ${n} significante cijfers: het kleinste aantal van ${D(Y)} en ${D('t')}.</p>`;
  return{html:h,val:num(sR),str:sR};
 }
 function raakMsg(dev,val,ex){
@@ -569,12 +571,12 @@ function modelTimmer(title){
  const T=S.task,R=S.read,fT=v=>fmt(v,T.dT),kmh=T.U.uy==='km/h';
  const sV=fmt(R.vr,R.dY),sT=fT(T.tb-T.ta),n=Math.max(2,Math.min(sig(sV),sig(sT)));
  const vSI=kmh?fmtSig(num(sV)/3.6,n):sV,sX=fmtSig(num(vSI)*num(sT),n);
- let h=`<h2>${title}</h2><p class="small">De horizontale lijn, afgelezen op de <i>v</i>-as, geeft de gemiddelde snelheid.</p>
+ let h=`<h2>${title}</h2><p class="small">De horizontale lijn, afgelezen op de ${V('v')}-as, geeft de gemiddelde snelheid.</p>
   <div class="eq">${VG} = ${sV} ${T.U.uy}${kmh?` = ${vSI} m/s`:''}</div>`;
  if(kmh)h+=`<p class="small">Omrekenen: km/h naar m/s: delen door 3,6.</p>`;
  h+=`<div class="eq">${D('t')} = ${fT(T.tb)} − ${par(fT(T.ta))} = ${sT} s</div>
   <div class="eq big">${D('x')} = ${VG} · ${D('t')} = ${vSI} · ${sT} = <b>${sX} m</b></div>
-  <p class="small">Afgerond op ${n} significante cijfers: het kleinste aantal van ${VG} en Δ${V('t')}.</p>`;
+  <p class="small">Afgerond op ${n} significante cijfers: het kleinste aantal van ${VG} en ${D('t')}.</p>`;
  return{html:h,v:num(sV)};
 }
 function areas(L){const T=S.task;let up=0,dn=0;const N=2000,h=(T.tb-T.ta)/N;for(let i=0;i<N;i++){const d=T.f(T.ta+(i+.5)*h)-L;if(d>0)up+=d*h;else dn-=d*h}const k=T.U.facT;return[up*k,dn*k]}
@@ -586,7 +588,7 @@ function timmerMsg(dev,high){
 }
 function timmerTable(vStr){
  const T=S.task,[up,dn]=areas(S.level),sVE=fmtSig(T.vE,3),sXE=fmtSig(T.vE*T.U.facT*(T.tb-T.ta),3);
- return`<tr><td>Exacte ${VG} (oppervlakte ÷ Δ${V('t')})</td><td>${sVE} ${T.U.uy}</td></tr><tr><td>Exacte afgelegde afstand</td><td>${sXE} m</td></tr>
+ return`<tr><td>Exacte ${VG} (oppervlakte ÷ ${D('t')})</td><td>${sVE} ${T.U.uy}</td></tr><tr><td>Exacte afgelegde afstand</td><td>${sXE} m</td></tr>
   <tr><td>Oppervlakte boven je lijn (blauw)</td><td>${fmtSig(up,3)} m</td></tr><tr><td>Oppervlakte onder je lijn (oranje)</td><td>${fmtSig(dn,3)} m</td></tr>`;
 }
 function showTimmer(){
@@ -613,7 +615,7 @@ function finish(mode,dev,good){
  if(dev<0.5)confetti();
  const t=S.tally[mode];t.n++;t.sum+=dev;if(good)t.top++;
  const parts=[];
- for(const [k,nm] of [['raak','Raaklijn'],['timmer','Timmermansoog']]){const q=S.tally[k];if(q.n)parts.push(`${nm}: ${q.n}× · gemiddelde afwijking ${fmt(q.sum/q.n,1)}% · uitstekend ${q.top}×`)}
+ for(const [k,nm] of [['raak','Raaklijn'],['timmer','Gemiddelde snelheid']]){const q=S.tally[k];if(q.n)parts.push(`${nm}: ${q.n}× · gemiddelde afwijking ${fmt(q.sum/q.n,1)}% · uitstekend ${q.top}×`)}
  $('tally').textContent=parts.join('   |   ');
  $('invoer').hidden=true;$('result').hidden=false;
  requestAnimationFrame(()=>$('result').scrollIntoView({block:'nearest',behavior:RM()?'auto':'smooth'}));
@@ -629,7 +631,7 @@ function openForm(){
    <h3>Antwoord${U.fac!==1?` (in ${U.req})`:''}</h3>${field('i_ans',`${V(Q)} =`,U.req)}`;
   $('andere').hidden=false;
  }else{
-  h=`${field('i_v',`${VG} =`,U.uy)}${field('i_x',`Δ${V('x')} =`,'m')}`;
+  h=`${field('i_v',`${VG} =`,U.uy)}${field('i_x',`${D('x')} =`,'m')}`;
   $('andere').hidden=true;
  }
  $('velden').innerHTML=h;$('frmmsg').textContent='';$('invoer').hidden=false;
@@ -663,15 +665,15 @@ function checkRaak(){
   :li('bad',`Aflezen: controleer je punten. Ze liggen bij ongeveer (${fmt(P[0].t,dT)} s; ${fmt(P[0].y,dY)} ${U.uy}) en (${fmt(P[1].t,dT)} s; ${fmt(P[1].y,dY)} ${U.uy}).`));
  if(Math.abs(P[1].t-P[0].t)<0.35*(T.ax.t1-T.ax.t0))items.push(li('tip','Kies je punten verder uit elkaar: dan tellen afleesfouten minder zwaar.'));
  let calcTxt;
- if(near(ans.v,calc,sa))calcTxt=li('ok',`Berekening: ${V(Q)} = Δ${V(Y)}/Δ${V('t')} = ${sDY}/${sDT}${U.fac!==1?` ${U.nat}, omgerekend`:''} klopt met jouw aflezingen.`);
+ if(near(ans.v,calc,sa))calcTxt=li('ok',`Berekening: ${V(Q)} = ${D(Y)}/${D('t')} = ${sDY}/${sDT}${U.fac!==1?` ${U.nat}, omgerekend`:''} klopt met jouw aflezingen.`);
  else{let why=`met jouw aflezingen kom je op ${fmtSig(calc,3)} ${U.req}.`;
   if(near(ans.v,-calc,sa))why='let op het teken: Δ is altijd eind − begin.';
   else if(U.fac!==1&&near(ans.v,calc/U.fac,sa))why=`je bent vergeten om te rekenen naar ${U.req} (${U.how}).`;
-  else if(dY_!==0&&(near(ans.v,dT_/dY_*U.fac,sa)||near(ans.v,dT_/dY_,sa)))why=`je hebt Δ${V('t')}/Δ${V(Y)} uitgerekend in plaats van Δ${V(Y)}/Δ${V('t')}.`;
-  else if((t2.v&&near(ans.v,y2.v/t2.v*U.fac,sa))||(t1.v&&near(ans.v,y1.v/t1.v*U.fac,sa)))why=`je hebt ${V(Y)}/${V('t')} van één punt uitgerekend. Gebruik de verschillen Δ${V(Y)} en Δ${V('t')}.`;
+  else if(dY_!==0&&(near(ans.v,dT_/dY_*U.fac,sa)||near(ans.v,dT_/dY_,sa)))why=`je hebt ${D('t')}/${D(Y)} uitgerekend in plaats van ${D(Y)}/${D('t')}.`;
+  else if((t2.v&&near(ans.v,y2.v/t2.v*U.fac,sa))||(t1.v&&near(ans.v,y1.v/t1.v*U.fac,sa)))why=`je hebt ${V(Y)}/${V('t')} van één punt uitgerekend. Gebruik de verschillen ${D(Y)} en ${D('t')}.`;
   calcTxt=li('bad','Berekening: '+why)}
  items.push(calcTxt);
- items.push(sfItem(ans.s,sDY.replace('−',''),sDT.replace('−',''),'Δ'+V(Y),'Δ'+V('t')));
+ items.push(sfItem(ans.s,sDY.replace('−',''),sDT.replace('−',''),D(Y),D('t')));
  const dev=Math.abs((ans.v-ex)/ex)*100,[cls,msg]=raakMsg(dev,ans.v,ex);
  S.state='locked';ui();draw();
  $('oordeel').innerHTML=`<h2>Controle per stap</h2><ul class="check">${items.join('')}</ul>
@@ -687,9 +689,9 @@ function checkTimmer(){
  const items=[];
  items.push(li(devL<5?'ok':devL<=15?'tip':'bad',`Schatting: je lijn ligt op ${fmtSig(S.level,3)} ${T.U.uy}; de exacte gemiddelde snelheid is ${fmtSig(T.vE,3)} ${T.U.uy} (${fmt(devL,1)}% afwijking).`));
  items.push(rd?li('ok','Aflezen: de hoogte van je lijn is goed afgelezen.'):li('bad',`Aflezen: je lijn ligt bij ongeveer ${fmt(Math.round(S.level/ry)*ry,Math.max(1,decs(ry)))} ${T.U.uy}.`));
- if(near(dx.v,exp,sa))items.push(li('ok',`Berekening: Δ${V('x')} = ${VG} · Δ${V('t')}${kmh?' (met '+VG+' in m/s)':''} klopt.`));
+ if(near(dx.v,exp,sa))items.push(li('ok',`Berekening: ${D('x')} = ${VG} · ${D('t')}${kmh?' (met '+VG+' in m/s)':''} klopt.`));
  else items.push(li('bad','Berekening: '+(kmh&&near(dx.v,vg.v*dTv,sa)?'je bent vergeten km/h om te rekenen naar m/s (delen door 3,6).':`met jouw ${VG} kom je op ${fmtSig(exp,3)} m.`)));
- items.push(sfItem(dx.s,vg.s.replace('-',''),sT,VG,'Δ'+V('t')));
+ items.push(sfItem(dx.s,vg.s.replace('-',''),sT,VG,D('t')));
  const dev=Math.abs(vg.v-T.vE)/T.vE*100,[cls,msg]=timmerMsg(dev,vg.v>T.vE);
  S.state='locked';ui();draw();
  $('oordeel').innerHTML=`<h2>Controle per stap</h2><ul class="check">${items.join('')}</ul>
@@ -732,7 +734,7 @@ function setQuestion(){
    :`Bepaal met de raaklijnmethode de <b>${xt?'snelheid':'versnelling'}</b> op ${V('t')} = ${fmt(T.td,1)} s.`)+(U.fac!==1?` Geef je antwoord in ${U.req}.`:'');
   $('context').textContent=`${T.name} · (${xt?'x':'v'},t)-diagram${T.hard?' · extra uitdaging':''}`;
  }else{
-  $('opdracht').innerHTML=`Bepaal met het timmermansoog de <b>gemiddelde snelheid</b> tussen ${V('t')} = ${fmt(T.ta,T.dT)} s en ${V('t')} = ${fmt(T.tb,T.dT)} s. Bereken daarmee de afgelegde afstand in m.`;
+  $('opdracht').innerHTML=`Bepaal met de methode van gelijke oppervlakken de <b>gemiddelde snelheid</b> tussen ${V('t')} = ${fmt(T.ta,T.dT)} s en ${V('t')} = ${fmt(T.tb,T.dT)} s. Bereken daarmee de afgelegde afstand in m.`;
   $('context').textContent=`${T.name} · (v,t)-diagram${T.hard?' · extra uitdaging':''}`;
  }
 }
