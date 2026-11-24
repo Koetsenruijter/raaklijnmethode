@@ -148,6 +148,7 @@ li.ok b.ic{color:var(--goodi)}li.bad b.ic{color:var(--badi)}li.tip b.ic{color:va
     <button id="opnieuw">Opnieuw proberen (zelfde grafiek)</button>
     <button id="volgende" class="primary">Volgende opdracht</button>
     <label class="chk"><input type="checkbox" id="exact"> <span id="exactlbl">Toon de exacte raaklijn</span></label>
+    <label class="chk" id="modelWrap" hidden><input type="checkbox" id="model"> Toon voorbeeld van de app</label>
   </div>
 </section>
 
@@ -453,27 +454,27 @@ function fullLine(m,col,dash,w){
  ctx.save();clip();ctx.strokeStyle=col;ctx.lineWidth=w;ctx.setLineDash(dash);ctx.beginPath();
  ctx.moveTo(tx(a.t0),ty(y0+m*(a.t0-t0)));ctx.lineTo(tx(a.t1),ty(y0+m*(a.t1-t0)));ctx.stroke();ctx.restore();
 }
-function construction(){
- const R=S.read,xt=S.task.k==='xt',Y=xt?'x':'v',uY=S.task.U.uy;
- const A={x:tx(R.t1),y:ty(R.y1)},B={x:tx(R.t2),y:ty(R.y2)};
- const fT=v=>fmt(v,R.dT),fY=v=>fmt(v,R.dY);
+function construction(L,col){
+ const xt=S.task.k==='xt',Y=xt?'x':'v',uY=S.task.U.uy,q=L.s;
+ const A={x:tx(L.t1),y:ty(L.y1)},B={x:tx(L.t2),y:ty(L.y2)};
  ctx.save();
- ctx.setLineDash([4,4]);ctx.lineWidth=1;ctx.strokeStyle='rgba(31,78,156,.75)';ctx.beginPath();
+ ctx.setLineDash([4,4]);ctx.lineWidth=1;ctx.strokeStyle=col===BL?'rgba(31,78,156,.75)':'rgba(217,72,15,.8)';ctx.beginPath();
  for(const p of [A,B]){ctx.moveTo(G.X0,p.y);ctx.lineTo(G.X1+4,p.y);ctx.moveTo(p.x,p.y);ctx.lineTo(p.x,G.Y1+24)}
  ctx.stroke();ctx.setLineDash([]);
- ctx.lineWidth=1.5;ctx.strokeStyle=BL;ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,A.y);ctx.lineTo(B.x,B.y);ctx.stroke();
- dot(A.x,A.y,4,BL);dot(B.x,B.y,4,BL);
- tag([fY(R.y1)],G.X0-3,A.y,'right','middle',BL,true);tag([fY(R.y2)],G.X0-3,B.y,'right','middle',BL,true);
- tag([fT(R.t1)],A.x,G.Y1+4,'center','top',BL,true);tag([fT(R.t2)],B.x,G.Y1+4,'center','top',BL,true);
- ctx.lineWidth=1.5;ctx.strokeStyle=BL;
- const yb=G.Y1+26;brace(A.x,yb,B.x,yb,0,1,9);
- tag([`Δt = ${fT(R.t2-R.t1)} ${TU()}`,`(${fT(R.t2)} − ${par(fT(R.t1))})`],(A.x+B.x)/2,yb+15,'center','top',BL);
- const xb=G.X1+6,top=Math.min(A.y,B.y),bot=Math.max(A.y,B.y),d=fY(R.y2-R.y1),sub=`(${fY(R.y2)} − ${par(fY(R.y1))})`;
+ ctx.lineWidth=1.5;ctx.strokeStyle=col;ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,A.y);ctx.lineTo(B.x,B.y);ctx.stroke();
+ dot(A.x,A.y,4,col);dot(B.x,B.y,4,col);
+ tag([q.y1],G.X0-3,A.y,'right','middle',col,true);tag([q.y2],G.X0-3,B.y,'right','middle',col,true);
+ tag([q.t1],A.x,G.Y1+4,'center','top',col,true);tag([q.t2],B.x,G.Y1+4,'center','top',col,true);
+ ctx.lineWidth=1.5;ctx.strokeStyle=col;
+ const yb=G.Y1+26,l=Math.min(A.x,B.x),r=Math.max(A.x,B.x);brace(l,yb,r,yb,0,1,9);
+ tag([`Δt = ${q.dt} ${TU()}`,`(${q.t2} − ${par(q.t1)})`],(A.x+B.x)/2,yb+15,'center','top',col);
+ const xb=G.X1+6,top=Math.min(A.y,B.y),bot=Math.max(A.y,B.y),sub=`(${q.y2} − ${par(q.y1)})`;
  brace(xb,top,xb,bot,1,0,9);
- if(G.nar)tag([`Δ${Y} =`,`${d} ${uY}`,sub],xb+15,(top+bot)/2,'left','middle',BL,false,2);
- else tag([`Δ${Y} = ${d} ${uY}`,sub],xb+15,(top+bot)/2,'left','middle',BL);
+ if(G.nar)tag([`Δ${Y} =`,`${q.dy} ${uY}`,sub],xb+15,(top+bot)/2,'left','middle',col,false,2);
+ else tag([`Δ${Y} = ${q.dy} ${uY}`,sub],xb+15,(top+bot)/2,'left','middle',col);
  ctx.restore();
 }
+function modelL(){const R=S.read,fT=v=>fmt(v,R.dT),fY=v=>fmt(v,R.dY);return{t1:R.t1,y1:R.y1,t2:R.t2,y2:R.y2,s:{t1:fT(R.t1),t2:fT(R.t2),y1:fY(R.y1),y2:fY(R.y2),dt:fT(R.t2-R.t1),dy:fY(R.y2-R.y1)}}}
 function studentPts(){
  if(!S.pts.length)return;
  ctx.save();ctx.setLineDash([3,4]);ctx.strokeStyle='rgba(217,72,15,.85)';ctx.lineWidth=1.2;ctx.beginPath();
@@ -502,8 +503,10 @@ function drawRaak(){
  if(st==='pick'||st==='form'||st==='locked'){
   if(st==='locked'&&S.exact)fullLine(S.task.df(S.task.td),'#11805a',[8,5],2);
   fullLine(S.m,'#c62d2d',[],2.1);
-  if(st==='locked')construction();
-  studentPts();
+  if(st==='locked'){
+   if(S.opt.self&&S.inp){if(S.model)construction(modelL(),BL);construction(S.inp,OR)}
+   else construction(modelL(),BL);
+  }else studentPts();
  }
  if(st==='aim')ruler();
  if(st==='place'){
@@ -533,7 +536,11 @@ function drawTimmerTop(){
  if(S.state==='form'){ctx.setLineDash([3,4]);ctx.strokeStyle='rgba(217,72,15,.85)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(G.X0,YL);ctx.lineTo(XA,YL);ctx.stroke();ctx.setLineDash([])}
  if(S.state==='locked'){
   ctx.setLineDash([4,4]);ctx.strokeStyle='rgba(198,45,45,.8)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(G.X0,YL);ctx.lineTo(XA,YL);ctx.stroke();ctx.setLineDash([]);
-  tag([fmt(S.read.vr,S.read.dY)],G.X0-3,ty(S.read.vr),'right','middle','#c62d2d',true);
+  if(S.opt.self&&S.inp){
+   if(S.model)tag([fmt(S.read.vr,S.read.dY)],G.X0-3,ty(S.read.vr),'right','middle','#c62d2d',true);
+   const Yi=ty(S.inp.v);ctx.setLineDash([3,4]);ctx.strokeStyle='rgba(217,72,15,.9)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(G.X0,Yi);ctx.lineTo(XA,Yi);ctx.stroke();ctx.setLineDash([]);
+   tag([S.inp.s],G.X0-3,Yi,'right','middle',OR,true);
+  }else tag([fmt(S.read.vr,S.read.dY)],G.X0-3,ty(S.read.vr),'right','middle','#c62d2d',true);
   ctx.strokeStyle=BL;ctx.lineWidth=1.5;const yb=G.Y1+26;brace(XA,yb,XB,yb,0,1,9);
   tag([`Δt = ${fT(T.tb-T.ta)} ${TU()}`,`(${fT(T.tb)} − ${par(fT(T.ta))})`],(XA+XB)/2,yb+15,'center','top',BL);
  }
@@ -581,16 +588,17 @@ const V=s=>`<i class="v">${s}</i>`,D=s=>`<span class="m">Δ${V(s)}</span>`,VG=`<
 const frac=(a,b)=>`<span class="frac"><span>${a}</span><span>${b}</span></span>`;
 const verdictBox=(cls,msg)=>`<p class="verdict ${cls}">${msg}</p>`;
 function modelRaak(title){
- const T=S.task,R=S.read,U=T.U,xt=T.k==='xt',Y=xt?'x':'v',Qs=xt?'v':'a';
+ const T=S.task,R=S.read,U=T.U,xt=T.k==='xt',Y=xt?'x':'v',Qs=xt?'v':'a',siY=xt?'m':'m/s';
  const fT=v=>fmt(v,R.dT),fY=v=>fmt(v,R.dY);
  const sY=fY(R.y2-R.y1),sT=fT(R.t2-R.t1),n=Math.max(2,Math.min(sig(sY),sig(sT)));
- const mN=num(sY)/num(sT),sN=fmtSig(mN,n),conv=U.conv,sR=conv?fmtSig(mN*U.fac,n):sN;
+ const cy=U.lf!==1,ct=U.tf!==1,sYs=cy?fmtSig(num(sY)*U.lf,sig(sY)):sY,sTs=ct?fmtSig(num(sT)*U.tf,sig(sT)):sT;
+ const sR=num(sTs)?fmtSig(num(sYs)/num(sTs),n):'0';
  let h=`<h2>${title}</h2><p class="small">Afgelezen op jouw raaklijn${S.opt.self?' (punten gekozen door de app)':''}: (${fT(R.t1)} ${U.ut}; ${fY(R.y1)} ${U.uy}) en (${fT(R.t2)} ${U.ut}; ${fY(R.y2)} ${U.uy})</p>
-  <div class="eq">${D(Y)} = ${fY(R.y2)} − ${par(fY(R.y1))} = ${sY} ${U.uy}</div>
-  <div class="eq">${D('t')} = ${fT(R.t2)} − ${par(fT(R.t1))} = ${sT} ${U.ut}</div>
-  <div class="eq big">${V(Qs)} = ${frac(D(Y),D('t'))} = ${frac(sY,sT)} = <b>${sN} ${U.nat}</b></div>`;
- if(conv)h+=`<div class="eq big">${V(Qs)} = <b>${sR} ${U.req}</b></div><p class="small">Omrekenen: ${U.how}.</p>`;
- h+=`<p class="small">Afgerond op ${n} significante cijfers: het kleinste aantal van ${D(Y)} en ${D('t')}.</p>`;
+  <div class="eq">${D(Y)} = ${fY(R.y2)} − ${par(fY(R.y1))} = ${sY} ${U.uy}${cy?` = ${sYs} ${siY}`:''}</div>
+  <div class="eq">${D('t')} = ${fT(R.t2)} − ${par(fT(R.t1))} = ${sT} ${U.ut}${ct?` = ${sTs} s`:''}</div>`;
+ if(U.conv)h+=`<p class="small">Omrekenen: ${U.how}.</p>`;
+ h+=`<div class="eq big">${V(Qs)} = ${frac(D(Y),D('t'))} = ${frac(sYs,sTs)} = <b>${sR} ${U.req}</b></div>
+  <p class="small">Afgerond op ${n} significante cijfers: het kleinste aantal van ${D(Y)} en ${D('t')}.</p>`;
  return{html:h,val:num(sR),str:sR};
 }
 function raakMsg(dev,val,ex){
@@ -693,6 +701,7 @@ function sfItem(ansS,aS,bS,nameA,nameB){
  return sa===n?li('ok',`Significante cijfers: ${sa}, net als het kleinste aantal van ${nameA} (${aS}) en ${nameB} (${bS}).`)
   :li('tip',`Significante cijfers: je antwoord heeft er ${sa}. Met ${nameA} = ${aS} en ${nameB} = ${bS} verwacht je er ${n}.`);
 }
+const disp=s=>s.replace('-','−');
 function checkRaak(){
  const T=S.task,U=T.U,xt=T.k==='xt',Y=xt?'x':'v',Q=xt?'v':'a',P=S.pts;
  const [t1,y1,t2,y2,ans]=['i_t1','i_y1','i_t2','i_y2','i_ans'].map(inp);
@@ -700,28 +709,32 @@ function checkRaak(){
  if(t1.v===t2.v){$('frmmsg').textContent='Je twee tijden zijn gelijk: dan kun je geen helling berekenen.';return}
  const rt=G.tMin,ry=G.yMin,dT=decs(rt),dY=decs(ry);
  const okPt=(a,b,p)=>Math.abs(a.v-p.t)<=0.51*rt+1e-9&&Math.abs(b.v-p.y)<=ry*1.01;
- let rd=okPt(t1,y1,P[0])&&okPt(t2,y2,P[1])||okPt(t1,y1,P[1])&&okPt(t2,y2,P[0]);
+ const sw=!(okPt(t1,y1,P[0])&&okPt(t2,y2,P[1]))&&okPt(t1,y1,P[1])&&okPt(t2,y2,P[0]),Q1=sw?P[1]:P[0],Q2=sw?P[0]:P[1];
+ const ok1=okPt(t1,y1,Q1),ok2=okPt(t2,y2,Q2);
  const dY_=y2.v-y1.v,dT_=t2.v-t1.v,calc=dY_/dT_*U.fac,sa=sig(ans.s);
  const sDY=fmt(dY_,Math.max(dcm(y1.s),dcm(y2.s))),sDT=fmt(dT_,Math.max(dcm(t1.s),dcm(t2.s)));
  const mL=S.m*U.fac,ex=T.df(T.td)*U.fac,devL=Math.abs((mL-ex)/ex)*100;
  const items=[];
  items.push(li(devL<5?'ok':devL<=15?'tip':'bad',`Raaklijn: de helling van jouw lijn is ${fmtSig(mL,3)} ${U.req}; exact is ${fmtSig(ex,3)} ${U.req} (${fmt(devL,1)}% afwijking).`
   +(T.start&&devL>5&&Math.abs(mL)<Math.abs(ex)?' Bij t = 0 is de raaklijn steiler dan de koorde naar een later punt.':'')));
- items.push(rd?li('ok','Aflezen: je twee punten zijn goed afgelezen.')
-  :li('bad',`Aflezen: controleer je punten. Ze liggen bij ongeveer (${fmt(P[0].t,dT)} ${U.ut}; ${fmt(P[0].y,dY)} ${U.uy}) en (${fmt(P[1].t,dT)} ${U.ut}; ${fmt(P[1].y,dY)} ${U.uy}).`));
+ const ptLi=(i,a,b,q,ok)=>li(ok?'ok':'bad',`Aflezen punt ${i}: jij (${disp(a.s)} ${U.ut}; ${disp(b.s)} ${U.uy})${ok?'':`, op je lijn ≈ (${fmt(q.t,dT)} ${U.ut}; ${fmt(q.y,dY)} ${U.uy})`}.`);
+ items.push(ptLi(1,t1,y1,Q1,ok1),ptLi(2,t2,y2,Q2,ok2));
  if(Math.abs(P[1].t-P[0].t)<0.35*(T.ax.t1-T.ax.t0))items.push(li('tip','Kies je punten verder uit elkaar: dan tellen afleesfouten minder zwaar.'));
+ const siY=xt?'m':'m/s',cy=U.lf!==1,ct=U.tf!==1,sYs=cy?fmtSig(dY_*U.lf,sig(sDY)):sDY,sTs=ct?fmtSig(dT_*U.tf,sig(sDT)):sDT;
+ const work=(cy?`${D(Y)} = ${sDY} ${U.uy} = ${sYs} ${siY}; `:`${D(Y)} = ${sDY} ${U.uy}; `)+(ct?`${D('t')} = ${sDT} ${U.ut} = ${sTs} s; `:`${D('t')} = ${sDT} s; `)+`${V(Q)} = ${sYs}/${sTs} = ${disp(ans.s)} ${U.req}`;
  let calcTxt;
- if(near(ans.v,calc,sa))calcTxt=li('ok',`Berekening: ${V(Q)} = ${D(Y)}/${D('t')} = ${sDY}/${sDT}${U.conv?` ${U.nat}, omgerekend`:''} klopt met jouw aflezingen.`);
+ if(near(ans.v,calc,sa))calcTxt=li('ok',`Berekening: ${work}.`);
  else{let why=`met jouw aflezingen kom je op ${fmtSig(calc,3)} ${U.req}.`;
   if(near(ans.v,-calc,sa))why='let op het teken: Δ is altijd eind − begin.';
   else if(U.conv&&near(ans.v,calc/U.fac,sa))why=`je bent vergeten om te rekenen naar ${U.req} (${U.how}).`;
   else if(dY_!==0&&(near(ans.v,dT_/dY_*U.fac,sa)||near(ans.v,dT_/dY_,sa)))why=`je hebt ${D('t')}/${D(Y)} uitgerekend in plaats van ${D(Y)}/${D('t')}.`;
   else if((t2.v&&near(ans.v,y2.v/t2.v*U.fac,sa))||(t1.v&&near(ans.v,y1.v/t1.v*U.fac,sa)))why=`je hebt ${V(Y)}/${V('t')} van één punt uitgerekend. Gebruik de verschillen ${D(Y)} en ${D('t')}.`;
-  calcTxt=li('bad','Berekening: '+why)}
+  calcTxt=li('bad',`Berekening: ${work}. Dat klopt niet: ${why}`)}
  items.push(calcTxt);
  items.push(sfItem(ans.s,sDY.replace('−',''),sDT.replace('−',''),D(Y),D('t')));
  const dev=Math.abs((ans.v-ex)/ex)*100;let [cls,msg]=raakMsg(dev,ans.v,ex);
  if(devL<=15&&dev>15){cls='bad';msg='Je raaklijn is goed, maar je antwoord klopt niet. Kijk bij de controle per stap waar het misgaat.'}
+ S.inp={t1:t1.v,y1:y1.v,t2:t2.v,y2:y2.v,s:{t1:disp(t1.s),y1:disp(y1.s),t2:disp(t2.s),y2:disp(y2.s),dt:sDT,dy:sDY}};
  S.state='locked';ui();draw();
  $('oordeel').innerHTML=`<h2>Controle per stap</h2><ul class="check">${items.join('')}</ul>
   <table><tr><td>Jouw antwoord</td><td>${ans.s} ${U.req}</td></tr><tr><td>Exacte waarde (afgeleide)</td><td>${fmtSig(ex,3)} ${U.req}</td></tr><tr><td>Afwijking</td><td>${fmt(dev,1)}%</td></tr></table>${verdictBox(cls,msg)}`;
@@ -735,12 +748,15 @@ function checkTimmer(){
  const rd=Math.abs(vg.v-S.level)<=ry*1.01,exp=vg.v*dTv*T.U.facT,devL=Math.abs(S.level-T.vE)/T.vE*100;
  const items=[];
  items.push(li(devL<5?'ok':devL<=15?'tip':'bad',`Schatting: je lijn ligt op ${fmtSig(S.level,3)} ${T.U.uy}; de exacte gemiddelde snelheid is ${fmtSig(T.vE,3)} ${T.U.uy} (${fmt(devL,1)}% afwijking).`));
- items.push(rd?li('ok','Aflezen: de hoogte van je lijn is goed afgelezen.'):li('bad',`Aflezen: je lijn ligt bij ongeveer ${fmt(Math.round(S.level/ry)*ry,decs(ry))} ${T.U.uy}.`));
- if(near(dx.v,exp,sa))items.push(li('ok',`Berekening: ${D('x')} = ${VG} · ${D('t')}${U.conv?' (in m/s en s)':''} klopt.`));
- else items.push(li('bad','Berekening: '+(U.conv&&near(dx.v,vg.v*dTv,sa)?`je bent vergeten om te rekenen naar m/s en s (${U.how}).`:U.conv&&U.lf!==1&&U.tf!==1&&(near(dx.v,vg.v*U.lf*dTv,sa)||near(dx.v,vg.v*dTv*U.tf,sa))?`je hebt maar één van de twee eenheden omgerekend (${U.how}).`:`met jouw ${VG} kom je op ${fmtSig(exp,3)} m.`)));
+ items.push(li(rd?'ok':'bad',`Aflezen: jij ${disp(vg.s)} ${U.uy}${rd?'':`, je lijn ligt bij ≈ ${fmt(Math.round(S.level/ry)*ry,decs(ry))} ${U.uy}`}.`));
+ const cv=U.lf!==1,ct=U.tf!==1,vSI=cv?fmtSig(vg.v*U.lf,sig(vg.s)):disp(vg.s),tSI=ct?fmtSig(dTv*U.tf,sig(sT)):sT;
+ const work=(cv?`${VG} = ${disp(vg.s)} ${U.uy} = ${vSI} m/s; `:'')+(ct?`${D('t')} = ${sT} ${U.ut} = ${tSI} s; `:'')+`${D('x')} = ${vSI} · ${tSI} = ${disp(dx.s)} m`;
+ if(near(dx.v,exp,sa))items.push(li('ok',`Berekening: ${work}.`));
+ else items.push(li('bad',`Berekening: ${work}. Dat klopt niet: `+(U.conv&&near(dx.v,vg.v*dTv,sa)?`je bent vergeten om te rekenen naar m/s en s (${U.how}).`:U.conv&&U.lf!==1&&U.tf!==1&&(near(dx.v,vg.v*U.lf*dTv,sa)||near(dx.v,vg.v*dTv*U.tf,sa))?`je hebt maar één van de twee eenheden omgerekend (${U.how}).`:`met jouw ${VG} kom je op ${fmtSig(exp,3)} m.`)));
  items.push(sfItem(dx.s,vg.s.replace('-',''),sT,VG,D('t')));
  const dev=Math.abs(vg.v-T.vE)/T.vE*100;let [cls,msg]=timmerMsg(dev,vg.v>T.vE);
  if(devL<=15&&dev>15){cls='bad';msg='Je lijn is goed geschat, maar je aflezing klopt niet. Kijk bij de controle per stap waar het misgaat.'}
+ S.inp={v:vg.v,s:disp(vg.s)};
  S.state='locked';ui();draw();
  $('oordeel').innerHTML=`<h2>Controle per stap</h2><ul class="check">${items.join('')}</ul>
   <table><tr><td>Jouw ${VG}</td><td>${vg.s} ${T.U.uy}</td></tr><tr><td>Afwijking</td><td>${fmt(dev,1)}%</td></tr>${timmerTable()}</table>${verdictBox(cls,msg)}`;
@@ -760,6 +776,7 @@ function ui(){
  $('teken').textContent=R?'Teken raaklijn':'Zet lijn vast';
  $('min').disabled=$('plus').disabled=$('teken').disabled=st!=='aim';
  $('hoek').hidden=!R;$('hoek').textContent=st==='aim'?`hoek ${fmt(angleOf(S.m),1)}°`:'–';
+ $('modelWrap').hidden=!(S.opt.self&&st==='locked');
  $('exactlbl').textContent=R?'Toon de exacte raaklijn':'Toon de exacte gemiddelde snelheid';
  const s=$('status');s.classList.remove('warn');
  const T=S.task;
@@ -797,7 +814,7 @@ function setQuestion(){
 }
 function reset(){
  const R=isR();
- S.state=R?'place':'aim';S.m=0;S.read=null;S.drag=null;S.exact=false;S.hov=null;S.hov2=null;S.miss=null;S.pts=[];
+ S.state=R?'place':'aim';S.m=0;S.read=null;S.drag=null;S.exact=false;S.hov=null;S.hov2=null;S.miss=null;S.pts=[];S.inp=null;S.model=false;$('model').checked=false;
  if(!R)S.level=pick([S.task.mn,S.task.mx]);
  $('exact').checked=false;$('result').hidden=true;$('invoer').hidden=true;$('velden').innerHTML='';
  layout();setQuestion();ui();draw();
@@ -883,6 +900,7 @@ $('min').onclick=()=>isR()?rotate(-0.5):move(-1);$('plus').onclick=()=>isR()?rot
 $('uitlegBtn').onclick=()=>{const t=$('uitlegTop'),open=t.hidden;t.hidden=!open;$('uitlegBtn').textContent=open?'Uitleg verbergen':'Uitleg';$('uitlegBtn').setAttribute('aria-expanded',String(open))};
 $('opnieuw').onclick=reset;$('volgende').onclick=newTask;$('nieuw').onclick=newTask;
 $('exact').onchange=e=>{S.exact=e.target.checked;draw()};
+$('model').onchange=e=>{S.model=e.target.checked;draw()};
 const save=()=>{try{localStorage.setItem('raaklijn-soort3',soort.value);localStorage.setItem('raaklijn-opt',JSON.stringify(S.opt))}catch(_){}};
 const syncOpts=()=>{$('o_exam_wrap').hidden=soort.value!=='timmer';$('o_hard_wrap').hidden=!S.opt.self;if(!S.opt.self&&S.opt.hard){S.opt.hard=false;$('o_hard').checked=false;save()}};
 soort.onchange=()=>{save();syncOpts();newTask()};
