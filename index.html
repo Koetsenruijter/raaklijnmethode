@@ -78,6 +78,7 @@ details ol{margin:0 0 10px;padding-left:22px}
 .velden h3{grid-column:1/-1;font:700 15px "Atkinson Hyperlegible",system-ui,sans-serif;margin:6px 0 -2px;color:var(--muted)}
 #frmmsg{color:var(--red);font-weight:700;margin:8px 0 0;min-height:1.2em}
 #invoer{margin-top:16px}
+#uitlegTop{padding-top:6px}
 ul.check{list-style:none;padding:0;margin:4px 0 10px}
 ul.check li{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:15px}
 ul.check b.ic{flex:none;width:1.3em;text-align:center}
@@ -98,11 +99,11 @@ li.ok b.ic{color:var(--goodi)}li.bad b.ic{color:var(--badi)}li.tip b.ic{color:va
     <label class="sel">Oefening
       <select id="soort">
         <option value="raak">Raaklijnmethode</option>
-        <option value="timmer">Gemiddelde snelheid (gelijke oppervlakken)</option>
-        <option value="alles">Alles door elkaar</option>
+        <option value="timmer">Gemiddelde snelheid schatten</option>
       </select>
     </label>
     <button id="nieuw" class="primary" style="align-self:flex-end">Nieuwe opdracht</button>
+    <button id="uitlegBtn" style="align-self:flex-end" aria-expanded="false" aria-controls="uitlegTop">Uitleg</button>
   </div>
 </header>
 <div class="opts">
@@ -111,6 +112,7 @@ li.ok b.ic{color:var(--goodi)}li.bad b.ic{color:var(--badi)}li.tip b.ic{color:va
   <label class="chk" id="o_hard_wrap"><input type="checkbox" id="o_hard"> Extra uitdaging</label>
 </div>
 
+<section id="uitlegTop" class="card" hidden style="margin-bottom:16px"></section>
 <section class="task" aria-live="polite">
   <p id="opdracht"></p>
   <div id="context"></div>
@@ -152,25 +154,32 @@ li.ok b.ic{color:var(--goodi)}li.bad b.ic{color:var(--badi)}li.tip b.ic{color:va
 <p id="tally"></p>
 
 <details>
-  <summary>Zo werken de methodes</summary>
+  <summary>Zo werkt de methode</summary>
+  <div id="m_raak">
   <h3>Raaklijnmethode</h3>
   <ol>
-    <li>Zoek het tijdstip op de tijdas en ga recht omhoog naar de grafiek: dat is je punt.</li>
-    <li>Leg de liniaal op het punt en draai tot de lijn de grafiek daar alleen raakt, met aan beide kanten evenveel ruimte.</li>
-    <li>Kies twee punten óp de raaklijn die ver uit elkaar liggen en goed af te lezen zijn.</li>
-    <li>Bereken de helling: <span class="m"><i>v</i> = Δ<i>x</i>/Δ<i>t</i></span> of <span class="m"><i>a</i> = Δ<i>v</i>/Δ<i>t</i></span>.</li>
+    <li id="m_r1">Zoek het tijdstip op de tijdas en ga recht omhoog naar de grafiek: dat is je punt.</li>
+    <li id="m_r2">Leg de liniaal op het punt en draai tot de lijn de grafiek daar alleen raakt, met aan beide kanten evenveel ruimte.</li>
+    <li>Kies twee punten óp de raaklijn die ver uit elkaar liggen en goed af te lezen zijn. Een snijpunt met een as is vaak handig.</li>
+    <li>Bereken de helling: <span class="m" id="m_form"></span>.</li>
   </ol>
-  <h3>Gemiddelde snelheid met gelijke oppervlakken</h3>
-  <p class="small" style="margin:0 0 4px">Deze methode heet ook wel het <em>timmermansoog</em>.</p>
+  <p class="small">Bediening: sleep over de grafiek om de liniaal te draaien, of gebruik het scrollwiel, de knoppen of de pijltjestoetsen (met Shift: fijner). Klik of druk op Enter om de raaklijn te tekenen.</p>
+  </div>
+  <div id="m_timmer">
+  <h3>Gemiddelde snelheid schatten</h3>
+  <p class="small" style="margin:0 0 4px">Je schat met gelijke oppervlakken. Deze methode heet ook wel het <em>timmermansoog</em>.</p>
   <ol>
     <li>Trek tussen de twee tijdstippen een horizontale lijn door de grafiek.</li>
     <li>Schuif de lijn tot de oppervlakte tussen grafiek en lijn <em>boven</em> de lijn even groot is als <em>onder</em> de lijn.</li>
-    <li>Lees de hoogte van de lijn af: dat is <span class="m"><i>v</i><sub>gem</sub></span>.</li>
-    <li>Bereken de afgelegde afstand: <span class="m">Δ<i>x</i> = <i>v</i><sub>gem</sub> · Δ<i>t</i></span>.</li>
+    <li>Lees de hoogte van de lijn af: dat is <span class="m"><i class="v">v</i><sub>gem</sub></span>.</li>
+    <li>Bereken de afgelegde afstand: <span class="m">Δ<i class="v">x</i> = <i class="v">v</i><sub>gem</sub> · Δ<i class="v">t</i></span>.</li>
   </ol>
+  <p class="small">Bediening: sleep over de grafiek om de lijn te verschuiven, of gebruik het scrollwiel, de knoppen of de pijltjestoetsen (met Shift: fijner). Klik of druk op Enter om de lijn vast te zetten.</p>
+  </div>
+  <div id="m_hard">
   <h3>Extra uitdaging</h3>
-  <p class="small" style="margin-top:0">Elke opdracht heeft een eenheid die je moet omrekenen: cm naar m (delen door 100) of km/h naar m/s (delen door 3,6). Soms beginnen de assen ook niet bij 0.</p>
-  <p class="small">Bediening: sleep in de grafiek, of gebruik het scrollwiel, de knoppen of de pijltjestoetsen (met Shift: fijner). Enter zet de lijn vast.</p>
+  <p class="small" style="margin-top:0">De assen hebben eenheden die je eerst moet omrekenen, zoals cm, mm of km, km/h, en tijd in ms, min of h. Reken je antwoord om naar m/s, m/s² of m. Soms beginnen de assen ook niet bij 0.</p>
+  </div>
 </details>
 </div>
 
@@ -640,7 +649,7 @@ function finish(mode,dev,good){
  if(dev<0.5)confetti();
  const t=S.tally[mode];t.n++;t.sum+=Math.min(dev,100);if(good)t.top++;
  const parts=[];
- for(const [k,nm] of [['raak','Raaklijn'],['timmer','Gemiddelde snelheid']]){const q=S.tally[k];if(q.n)parts.push(`${nm}: ${q.n}× · gemiddelde afwijking ${fmt(q.sum/q.n,1)}% · uitstekend ${q.top}×`)}
+ for(const [k,nm] of [['raak','Raaklijn'],['timmer','Gemiddelde snelheid schatten']]){const q=S.tally[k];if(q.n)parts.push(`${nm}: ${q.n}× · gemiddelde afwijking ${fmt(q.sum/q.n,1)}% · uitstekend ${q.top}×`)}
  $('tally').textContent=parts.join('   |   ');
  $('invoer').hidden=true;$('result').hidden=false;
  requestAnimationFrame(()=>$('result').scrollIntoView({block:'nearest',behavior:RM()?'auto':'smooth'}));
@@ -747,21 +756,30 @@ function ui(){
    pick:`Klik ${S.pts.length?'nog één punt':'twee goed afleesbare punten'} op je raaklijn, zo ver mogelijk uit elkaar. Ze klikken vast op een roosterlijn.`,
    form:'Lees je twee punten af, bereken de helling en vul alles hieronder in.',
    locked:self?'Gecontroleerd. Bekijk de feedback hieronder.':'Raaklijn getekend. Bekijk de uitwerking hieronder.'})[st]
-  :({aim:`Sleep of klik in de grafiek om de horizontale lijn te verschuiven (of scrollwiel, knoppen, ↑/↓, Shift = fijner).${S.opt.exam?' Schat zelf of de oppervlakte boven en onder de lijn even groot is.':' Maak blauw en oranje even groot.'} Druk daarna op "Zet lijn vast".`,
+  :({aim:`Sleep over de grafiek om de horizontale lijn te verschuiven (of scrollwiel, knoppen, ↑/↓, Shift = fijner).${S.opt.exam?' Schat zelf of de oppervlakte boven en onder de lijn even groot is.':' Maak blauw en oranje even groot.'} Klik of druk op Enter om de lijn vast te zetten.`,
    form:'Lees de hoogte van je lijn af, bereken de afgelegde afstand en vul het hieronder in.',
    locked:self?'Gecontroleerd. Bekijk de feedback hieronder.':'Lijn vastgezet. Bekijk de uitwerking hieronder.'})[st];
  cv.style.cursor=st==='place'?(S.hov!==null?'pointer':'crosshair'):st==='aim'?(R?(S.drag?'grabbing':'grab'):'ns-resize'):st==='pick'?(S.hov2?'pointer':'crosshair'):'default';
  cv.style.touchAction=st==='aim'?'none':'pan-y';
 }
 function warn(t){const s=$('status');s.textContent=t;s.classList.add('warn')}
+function syncUitleg(){
+ const src=document.querySelector('details'),top=$('uitlegTop');
+ top.replaceChildren(...[...src.children].filter(c=>c.tagName!=='SUMMARY').map(c=>{const k=c.cloneNode(true);k.removeAttribute('id');k.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));return k}));
+}
 function setQuestion(){
- const T=S.task,U=T.U;
+ const T=S.task,U=T.U,R=T.mode==='raak';
+ $('m_raak').hidden=!R;$('m_timmer').hidden=R;$('m_hard').hidden=!T.hard;
+ if(R){const xt=T.k==='xt';$('m_form').innerHTML=xt?`${V('v')} = ${D('x')}/${D('t')}`:`${V('a')} = ${D('v')}/${D('t')}`;
+  $('m_r1').textContent=T.start?'Je punt is het beginpunt van de grafiek, op de verticale as (t = 0).':'Zoek het tijdstip op de tijdas en ga recht omhoog naar de grafiek: dat is je punt.';
+  $('m_r2').textContent=T.start?'Leg de liniaal op het beginpunt en draai tot de lijn het begin van de grafiek alleen raakt. Let op: een lijn naar een later punt van de grafiek is een koorde, geen raaklijn.':'Leg de liniaal op het punt en draai tot de lijn de grafiek daar alleen raakt, met aan beide kanten evenveel ruimte.'}
+ syncUitleg();
  if(T.mode==='raak'){const xt=T.k==='xt';
   $('opdracht').innerHTML=(T.start?`Bepaal met de raaklijnmethode de <b>beginsnelheid</b>: de snelheid op ${V('t')} = 0 ${U.ut}.`
    :`Bepaal met de raaklijnmethode de <b>${xt?'snelheid':'versnelling'}</b> op ${V('t')} = ${fmt(T.td,1)} ${U.ut}.`)+(U.conv?` Geef je antwoord in ${U.req}.`:'');
   $('context').textContent=`${T.name} · (${xt?'x':'v'},t)-diagram${T.hard?' · extra uitdaging':''}`;
  }else{
-  $('opdracht').innerHTML=`Bepaal met de methode van gelijke oppervlakken de <b>gemiddelde snelheid</b> tussen ${V('t')} = ${fmt(T.ta,T.dT)} ${U.ut} en ${V('t')} = ${fmt(T.tb,T.dT)} ${U.ut}. Bereken daarmee de afgelegde afstand in m.`;
+  $('opdracht').innerHTML=`Schat de <b>gemiddelde snelheid</b> tussen ${V('t')} = ${fmt(T.ta,T.dT)} ${U.ut} en ${V('t')} = ${fmt(T.tb,T.dT)} ${U.ut}. Bereken daarmee de afgelegde afstand in m.`;
   $('context').textContent=`${T.name} · (v,t)-diagram${T.hard?' · extra uitdaging':''}`;
  }
 }
@@ -806,7 +824,6 @@ cv.addEventListener('pointerdown',e=>{
   else{S.miss={x:tx(t),y:ty(S.task.f(t))};draw();warn(`Je klikte bij t ≈ ${fmt(t,1)} ${TU()}. Zoek t = ${fmt(S.task.td,1)} ${TU()} op de tijdas en ga recht omhoog naar de grafiek.`)}
  }else if(S.state==='aim'){
   S.drag={x:p.x,y:p.y,moved:false};cv.setPointerCapture(e.pointerId);
-  if(!isR())setLevel(yOf(p.y));
   ui();
  }else if(S.state==='pick'){
   const q=onLine(p,touch?40:28),a=S.task.ax;
@@ -823,17 +840,16 @@ cv.addEventListener('pointermove',e=>{
  if(S.state==='place'){const t=nearCurve(p,24);if((t===null)!==(S.hov===null)||t!==null){S.hov=t;ui();draw()}}
  else if(S.state==='pick'){const q=onLine(p,28);if(q||S.hov2){S.hov2=q;ui();draw()}}
  else if(S.state==='aim'&&S.drag){
-  if(!isR()){setLevel(yOf(p.y));return}
   if(!S.drag.moved&&Math.hypot(p.x-S.drag.x,p.y-S.drag.y)<4)return;
-  S.drag.moved=true;const q=pivot(),dx=p.x-q.x,dy=q.y-p.y;
+  S.drag.moved=true;
+  if(!isR()){setLevel(yOf(p.y));return}const q=pivot(),dx=p.x-q.x,dy=q.y-p.y;
   if(Math.hypot(dx,dy)<14)return;
   setAngle(dx===0?89.5:Math.atan(dy/dx)*DEG);
  }
 });
 cv.addEventListener('pointerleave',()=>{if(S.hov!==null||S.hov2){S.hov=null;S.hov2=null;ui();draw()}});
-cv.addEventListener('pointerup',()=>{if(S.state==='aim'&&S.drag){const click=!S.drag.moved;S.drag=null;if(click&&isR())lock();else ui()}});
+cv.addEventListener('pointerup',()=>{if(S.state==='aim'&&S.drag){const click=!S.drag.moved;S.drag=null;if(click)lock();else ui()}});
 cv.addEventListener('pointercancel',()=>{S.drag=null;ui()});
-cv.addEventListener('dblclick',()=>{if(!isR())lock()});
 let acc=0;
 cv.addEventListener('wheel',e=>{
  if(S.state!=='aim')return;e.preventDefault();
@@ -852,10 +868,11 @@ document.addEventListener('keydown',e=>{
 $('frm').addEventListener('submit',e=>{e.preventDefault();if(S.state!=='form')return;isR()?checkRaak():checkTimmer()});
 $('andere').onclick=()=>{if(!isR())return;S.pts=[];S.state='pick';$('invoer').hidden=true;ui();draw()};
 $('min').onclick=()=>isR()?rotate(-0.5):move(-1);$('plus').onclick=()=>isR()?rotate(0.5):move(1);$('teken').onclick=lock;
+$('uitlegBtn').onclick=()=>{const t=$('uitlegTop'),open=t.hidden;t.hidden=!open;$('uitlegBtn').textContent=open?'Uitleg verbergen':'Uitleg';$('uitlegBtn').setAttribute('aria-expanded',String(open))};
 $('opnieuw').onclick=reset;$('volgende').onclick=newTask;$('nieuw').onclick=newTask;
 $('exact').onchange=e=>{S.exact=e.target.checked;draw()};
 const save=()=>{try{localStorage.setItem('raaklijn-soort3',soort.value);localStorage.setItem('raaklijn-opt',JSON.stringify(S.opt))}catch(_){}};
-const syncOpts=()=>{$('o_exam_wrap').hidden=soort.value==='raak';$('o_hard_wrap').hidden=!S.opt.self;if(!S.opt.self&&S.opt.hard){S.opt.hard=false;$('o_hard').checked=false;save()}};
+const syncOpts=()=>{$('o_exam_wrap').hidden=soort.value!=='timmer';$('o_hard_wrap').hidden=!S.opt.self;if(!S.opt.self&&S.opt.hard){S.opt.hard=false;$('o_hard').checked=false;save()}};
 soort.onchange=()=>{save();syncOpts();newTask()};
 for(const [id,k] of [['o_self','self'],['o_exam','exam'],['o_hard','hard']])$(id).onchange=e=>{S.opt[k]=e.target.checked;save();syncOpts();if(k==='exam'){ui();draw()}else newTask()};
 try{const v=localStorage.getItem('raaklijn-soort3');if(v&&[...soort.options].some(o=>o.value===v))soort.value=v;
